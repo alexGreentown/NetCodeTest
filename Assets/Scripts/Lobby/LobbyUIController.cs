@@ -16,7 +16,17 @@ namespace NetCodeTest.Lobby
         {
             _hostButton.onClick.AddListener(() => _lobbyManager.StartHost());
             _joinButton.onClick.AddListener(() => _lobbyManager.StartClient());
-            _startGameButton.onClick.AddListener(() => _sceneLoader.LoadGameScene());
+            
+            _startGameButton.onClick.AddListener(() =>
+            {
+                
+                _sceneLoader.LoadGameScene();
+                
+                if (LobbyManager.Instance != null)
+                {
+                    LobbyManager.Instance.StartGameServerRpc();
+                }
+            });
         }
     }
 }

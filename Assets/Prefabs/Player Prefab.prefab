@@ -13,6 +13,14 @@ GameObject:
   - component: {fileID: 5291956857780870729}
   - component: {fileID: 844544361750750373}
   - component: {fileID: -5833608883756877937}
+  - component: {fileID: -1566718633578233821}
+  - component: {fileID: -2495137596757284126}
+  - component: {fileID: -4067504446447772432}
+  - component: {fileID: -2869979008736387846}
+  - component: {fileID: 760018313448136030}
+  - component: {fileID: 1983811688559852843}
+  - component: {fileID: 26558483269920095}
+  - component: {fileID: 6627682515607501845}
   m_Layer: 0
   m_Name: Player Prefab
   m_TagString: Untagged
@@ -120,9 +128,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MultiplayerJupiter.PlayerNetwork
   ShowTopMostFoldoutHeaderGroup: 1
-  _playerColor:
-    m_InternalValue: {r: 1, g: 1, b: 1, a: 1}
-  _renderer: {fileID: 259812716682740009}
+  _gameSceneName: Game
 --- !u!114 &-5833608883756877937
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,8 +156,9 @@ MonoBehaviour:
   m_ActionEvents:
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 844544361750750373}
-        m_TargetAssemblyTypeName: MultiplayerJupiter.PlayerNetwork, Assembly-CSharp
+      - m_Target: {fileID: -2495137596757284126}
+        m_TargetAssemblyTypeName: NetCodeTest.Gameplay.Player.PlayerInputSource,
+          Assembly-CSharp
         m_MethodName: OnMove
         m_Mode: 0
         m_Arguments:
@@ -178,8 +185,9 @@ MonoBehaviour:
     m_ActionName: 'Player/Interact[/Keyboard/e]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 844544361750750373}
-        m_TargetAssemblyTypeName: MultiplayerJupiter.PlayerNetwork, Assembly-CSharp
+      - m_Target: {fileID: -2495137596757284126}
+        m_TargetAssemblyTypeName: NetCodeTest.Gameplay.Player.PlayerInputSource,
+          Assembly-CSharp
         m_MethodName: OnColor
         m_Mode: 0
         m_Arguments:
@@ -253,6 +261,122 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &-1566718633578233821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdad429d8ded251479117cb074a70bb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerOwnershipGate
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &-2495137596757284126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49bc1534dd35047438e8d071797e8159, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerInputSource
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &-4067504446447772432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fb10cc330639eb4a9ff1e5c9d78dbc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerColorInput
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &-2869979008736387846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36e584028907ff34c83e14a98e603d2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerColorSync
+  ShowTopMostFoldoutHeaderGroup: 1
+  _renderer: {fileID: 259812716682740009}
+--- !u!114 &760018313448136030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 106fe746e62980943af333ec33a790fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerMovementMode
+  ShowTopMostFoldoutHeaderGroup: 1
+  _ownerAuth: {fileID: 0}
+  _serverAuth: {fileID: 0}
+  _networkTransform: {fileID: 0}
+  _runtimeModeView: 0
+--- !u!114 &1983811688559852843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac3e04b2d87cdf748a55beff58840a1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.OwnerAuthMovement
+  ShowTopMostFoldoutHeaderGroup: 1
+  _speed: 5
+--- !u!114 &26558483269920095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79c2854155af8054181c4520d0b1e83b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.ServerAuthMovement
+  ShowTopMostFoldoutHeaderGroup: 1
+  _speed: 5
+  _reconcileThreshold: 0.05
+  _offsetSmoothing: 0.1
+--- !u!114 &6627682515607501845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1421ab078d1a49d4e9a83e87af01ad7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.DebugMovementOverlay
+  ShowTopMostFoldoutHeaderGroup: 1
+  _showOverlay: 1
+  _movementMode: {fileID: 760018313448136030}
+  _serverAuthMovement: {fileID: 26558483269920095}
 --- !u!1 &1800434881181835900
 GameObject:
   m_ObjectHideFlags: 0

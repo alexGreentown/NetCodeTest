@@ -1,173 +1,81 @@
+using System;
+using NetCodeTest.Lobby;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 namespace NetCodeTest.Gameplay.Player
 {
-    public class PlayerNetwork : NetworkBehaviour
+    /// <summary>
+    /// Player facade: ownership, lifecycle, scene state.
+    /// Does NOT handle input or movement directly.
+    /// </summary>
+    public sealed class PlayerNetwork : NetworkBehaviour
     {
-#region Fields
-        public NetworkVariable<Color> _playerColor = new NetworkVariable<Color>(Color.white);
-        [SerializeField]private Renderer _renderer;
+        #region Fields
+        [Header("Gameplay")]
+        [SerializeField] private string _gameSceneName = "Game";
 
-        private bool _isControlsEnabled;
-        
-        private PlayerInput _input;
-        private Vector2 _moveInput;
-#endregion
+        private PlayerMovementMode _movementMode;
 
+        #endregion
 
-
-#region Unity Methods
 
         private void Awake()
         {
-            _input = GetComponent<PlayerInput>();
+            _movementMode = GetComponent<PlayerMovementMode>();
         }
-
-        private void OnEnable()
-        {
-            _playerColor.OnValueChanged += OnColorChanged;
-        }
-
-        private void OnDisable()
-        {
-            _playerColor.OnValueChanged -= OnColorChanged;
-        }
-
-        private void Update()
-        {
-            if (!IsOwner) return;
-            //if (!IsOwner || !_isControlsEnabled) return;
-
-            HandleMovement(_moveInput.x, _moveInput.y);
-        }
-#endregion
-
-
-
-#region Methods
-
-        public void OnMove(InputAction.CallbackContext ctx)
-        {
-            _moveInput = ctx.ReadValue<Vector2>();
-        }
-
-        public void OnColor(InputAction.CallbackContext ctx)
-        {
-            if (!IsOwner) return;
-
-            if (ctx.performed)
-            {
-                Color newColor = Random.ColorHSV();
-                ChangeColorServerRpc(newColor);
-            }
-        }
-
-        private void HandleMovement(float moveX, float moveZ)
-        {
-            Vector3 move = new Vector3(moveX, 0f, moveZ);   
-            
-            float speed = 5f;
-            transform.Translate(move * speed * Time.deltaTime);     
-            // SendMoveInputServerRpc(move);  
-        }
-
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            Debug.Log($"OnSceneLoaded() {scene.name}");
-            if (scene.name == "Game")
-            {                
-                EnableGameplayControls(); // your input or movement scripts
-            }
-        }
-
-        private void EnableGameplayControls()
-        {
-            _isControlsEnabled = true;
-        }
-
-        private void OnColorChanged(Color oldColor, Color newColor)
-        {
-            if (_renderer != null)
-            {
-                _renderer.material.color = newColor;
-            }
-        }
-
-        
-
-        public void SendColorToClient(ulong targetClientId)
-        {
-            ApplyColorClientRpc(_playerColor.Value, new ClientRpcParams {
-                Send = new ClientRpcSendParams {
-                    TargetClientIds = new[] { targetClientId }
-                }
-            });
-        }
-#endregion
-
-
-
-#region NetCode methods
 
         public override void OnNetworkSpawn()
         {
-            _input.enabled = IsOwner;
-
-            Debug.Log($"OnNetworkSpawn() {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name} IsServer ={IsServer} | IsOwner={IsOwner} | OwnerClientId={OwnerClientId} | LocalClientId={NetworkManager.Singleton.LocalClientId}");
-            if (IsServer && _playerColor.Value == Color.white)
+            // apply movement mode on spawn
+            if (_movementMode != null)
             {
-                _playerColor.Value = Random.ColorHSV();
+                _movementMode.ApplyMode();
             }
-            OnColorChanged(Color.white, _playerColor.Value); 
-
-            if (IsOwner && IsClient && !IsServer)
-            {
-                RequestAllPlayerColorsServerRpc(); // ask for existing player colors
-            }
-
+            
             if (IsOwner)
             {
                 SceneManager.sceneLoaded += OnSceneLoaded;
             }
-        }
-
-        // public override void OnNetworkDespawn()
-        // {
-        // }
-        
-        [ServerRpc]
-        private void SendMoveInputServerRpc(Vector3 moveInput, ServerRpcParams rpcParams = default)
-        {
-            float moveSpeed = 5f;
-            transform.Translate(moveInput * moveSpeed * Time.deltaTime);
-        }
-           
-        [ServerRpc]
-        private void ChangeColorServerRpc(Color newColor)
-        {
-            _playerColor.Value = newColor;
-        }
-
-        [ServerRpc]
-        public void RequestAllPlayerColorsServerRpc()
-        {
-            foreach (var player in FindObjectsOfType<PlayerNetwork>())
+             
+            if (LobbyManager.Instance != null)
             {
-                player.SendColorToClient(OwnerClientId); // owner = the joining player
+                var gameplay = LobbyManager.Instance.GameplayEnabled;
+
+                gameplay.OnValueChanged += OnGameplayChanged;
+
+                OnGameplayChanged(false, gameplay.Value);
             }
         }
 
-        [ClientRpc]
-        private void ApplyColorClientRpc(Color color, ClientRpcParams rpcParams = default)
+        public override void OnNetworkDespawn()
         {
-            if (_renderer != null)
-                _renderer.material.color = color;
+            if (IsOwner)
+            {
+                SceneManager.sceneLoaded -= OnSceneLoaded;
+            }        
+            
+            if (LobbyManager.Instance != null)
+                LobbyManager.Instance.GameplayEnabled.OnValueChanged -= OnGameplayChanged;
         }
 
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            bool gameplay = scene.name == _gameSceneName;
 
-#endregion
+            Debug.Log($"OnSceneLoaded scene.name={scene.name} {gameplay}");
+            
+            // enable/disable movement scripts safely
+            _movementMode?.SetGameplayEnabled(gameplay);
+        }
+        
+        
+        private void OnGameplayChanged(bool _, bool enabled)
+        {
+            _movementMode?.SetGameplayEnabled(enabled);
+        }
+        
+        
     }
 }
