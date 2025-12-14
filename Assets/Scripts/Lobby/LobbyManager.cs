@@ -332,8 +332,15 @@ namespace NetCodeTest.Lobby
                 return;
             }
 
+            ShowLoadingClientRpc();
             GameplayEnabled.Value = true;
             Debug.Log("[Lobby][Server] Game started");
+        }
+        
+        [ClientRpc]
+        private void ShowLoadingClientRpc()
+        {
+            _lobbyUI.ShowLoadingScreen();
         }
 
         #endregion
