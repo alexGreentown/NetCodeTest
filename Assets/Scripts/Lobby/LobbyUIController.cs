@@ -92,7 +92,8 @@ namespace NetCodeTest.Lobby
 
         public void HideLoadingScreen()
         {
-            _loadingScreen.SetActive(false);
+            if(_loadingScreen!=null)
+                _loadingScreen.SetActive(false);
         }
 
         public void RebuildPlayers()
