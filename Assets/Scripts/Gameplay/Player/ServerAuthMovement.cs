@@ -117,7 +117,7 @@ namespace NetCodeTest.Gameplay.Player
                 if (Time.time - _lastInputTime > InputTimeout)
                     _lastServerMove = Vector2.zero;
                 
-                Debug.Log($"[SERVER] tick move={_lastServerMove} owner={OwnerClientId}");
+                // Debug.Log($"[SERVER] tick move={_lastServerMove} owner={OwnerClientId}");
 
                 // authoritative movement
                 _serverSimTick++;
@@ -140,7 +140,6 @@ namespace NetCodeTest.Gameplay.Player
         public void SetGameplayEnabled(bool enabled)
         {
             _gameplayEnabled = enabled;
-            Debug.Log($"SetGameplayEnabled3 _gameplayEnabled={_gameplayEnabled}");
         }
 
         [ServerRpc(Delivery = RpcDelivery.Unreliable)]
@@ -249,7 +248,7 @@ namespace NetCodeTest.Gameplay.Player
                 _predictedPosBuffer[i] = Vector3.zero;
             } 
             
-            // Late-join safe sync >> this requires a spawned Lobby rather than existing
+            // Late-join safe sync
             var lobby = LobbyManager.Instance;
             if (lobby != null)
             {
