@@ -249,7 +249,7 @@ namespace NetCodeTest.Gameplay.Player
                 _predictedPosBuffer[i] = Vector3.zero;
             } 
             
-            // Late-join safe sync >> this requires a spawned Lobby rather than existing
+            // Late-join safe sync >> TODO this requires a spawned Lobby rather than existing
             var lobby = LobbyManager.Instance;
             if (lobby != null)
             {

@@ -1,52 +1,343 @@
 using System;
+using System.Text;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace NetCodeTest.Lobby
 {
+    public enum LobbyPrivacy : byte
+    {
+        Public = 0,
+        Private = 1
+    }
+
+    public enum LobbyErrorCode
+    {
+        None = 0,
+        LobbyFull = 101,
+        DuplicateUserId = 103,
+        LobbyClosed = 102,
+        NotAllPlayersReady = 106,
+        UnauthorizedAction = 107
+    }
+
+    public struct PlayerLobbyData : INetworkSerializable, IEquatable<PlayerLobbyData>
+    {
+        public ulong ClientId;
+        public FixedString64Bytes UserId;
+        public bool IsReady;
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            serializer.SerializeValue(ref ClientId);
+            serializer.SerializeValue(ref UserId);
+            serializer.SerializeValue(ref IsReady);
+        }    
+        
+        public bool Equals(PlayerLobbyData other)
+            => ClientId == other.ClientId
+               && UserId.Equals(other.UserId)
+               && IsReady == other.IsReady;
+
+        public override bool Equals(object obj)
+            => obj is PlayerLobbyData other && Equals(other);
+
+        public override int GetHashCode()
+            => HashCode.Combine(ClientId, UserId.GetHashCode(), IsReady);
+    }
+
+    /// <summary>
+    /// server-authoritative lobby
+    /// </summary>
+    [RequireComponent(typeof(LobbyUIController))]
     public class LobbyManager : NetworkBehaviour
     {
+        #region Fields
         public static LobbyManager Instance;
-        
-        public NetworkVariable<bool> GameplayEnabled =
-            new NetworkVariable<bool>(
-                false,
-                NetworkVariableReadPermission.Everyone,
-                NetworkVariableWritePermission.Server
-            );
 
-        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        public void StartGameServerRpc()
-        {
-            Debug.Log($"StartGameServerRpc()");
-            GameplayEnabled.Value = true;
-        }
+        [SerializeField] 
+        private LobbyUIController _lobbyUI;
+
+        // Lobby settings
+        public NetworkVariable<FixedString64Bytes> LobbyName = new("Lobby");
+        public NetworkVariable<int> MaxPlayers = new(4);
+        public NetworkVariable<LobbyPrivacy> Privacy = new(LobbyPrivacy.Public);
+
+        public NetworkList<PlayerLobbyData> Players;
+        #endregion
+
+        
+        
+        #region Unity LifeCycle
 
         private void Awake()
         {
+            if (NetworkManager.Singleton == null)
+            {
+                Debug.LogError("NetworkManager not found");
+            }
+            
+            _lobbyUI = GetComponent<LobbyUIController>();
             if (Instance != null && Instance != this)
             {
+                Debug.LogError("Duplicated Instance");
                 Destroy(gameObject);
                 return;
             }
 
             Instance = this;
-            DontDestroyOnLoad(gameObject); 
+            Players = new NetworkList<PlayerLobbyData>();
+            
+            DontDestroyOnLoad(gameObject);
         }
+
+        private void OnEnable()
+        {
+            _lobbyUI.OnHostButtonPress += LobbyUI_OnHostButtonPress;
+            _lobbyUI.OnJoinButtonPress += LobbyUI_OnJoinButtonPress;
+            _lobbyUI.OnStartButtonPress += LobbyUI_OnStartButtonPress;
+            _lobbyUI.OnReadyChanged += LobbyUI_OnReadyChange;
+        }
+
+        private void OnDisable()
+        {
+            _lobbyUI.OnHostButtonPress -= LobbyUI_OnHostButtonPress;
+            _lobbyUI.OnJoinButtonPress -= LobbyUI_OnJoinButtonPress;
+            _lobbyUI.OnStartButtonPress -= LobbyUI_OnStartButtonPress;
+        }
+        #endregion
+        
+        
+        
+        #region Gameplay State
+
+        public NetworkVariable<bool> GameplayEnabled = new(false,
+                NetworkVariableReadPermission.Everyone,
+                NetworkVariableWritePermission.Server
+            );
+
+        #endregion
+        
+        
+        #region Player Management (Server)
+
+        public override void OnNetworkSpawn()
+        {
+            if (IsServer)
+            {
+                Debug.Log("[Lobby][Server] LobbyManager spawned");
+                
+                LobbyConnectionApproval.Install();
+                
+                NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+                NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            }
+        }
+        
+        private void OnClientDisconnected(ulong clientId)
+        {
+            Debug.Log($"OnClientDisconnected {clientId}");
+            
+            for (int i = 0; i < Players.Count; i++)
+            {
+                if (Players[i].ClientId == clientId)
+                {
+                    Debug.Log($"[Lobby][Server] Player disconnected {clientId}");
+                    Players.RemoveAt(i);
+                    return;
+                }
+            }
+            
+        }private void OnClientConnected(ulong clientId)
+        {
+            Debug.Log($"[Lobby][Server] Player Connected {clientId}");
+        }
+
+        //[Rpc(SendTo.Server)]
+        public bool TryAddPlayer(ulong clientId, string userId, out LobbyErrorCode error)
+        {
+            Debug.Log($"[Lobby][Server] TryAddPlayer {clientId} userId={userId}");
+
+            error = LobbyErrorCode.None;
+
+            if (Players.Count >= MaxPlayers.Value)
+            {
+                error = LobbyErrorCode.LobbyFull;
+                return false;
+            }
+
+            foreach (var p in Players)
+            {
+                if (p.UserId.ToString() == userId)
+                {
+                    error = LobbyErrorCode.DuplicateUserId;
+                    return false;
+                }
+            }
+
+            Players.Add(new PlayerLobbyData
+            {
+                ClientId = clientId,
+                UserId = userId,
+                IsReady = false
+            });
+
+            Debug.Log($"[Lobby][Server] Player joined {clientId} ({userId})");
+            return true;
+        }
+
+       [Rpc(SendTo.Server)]
+        public void KickPlayerServerRpc(ulong targetClientId, RpcParams rpcParams = default)
+        {
+            var sender = rpcParams.Receive.SenderClientId;
+
+            if (sender != NetworkManager.ServerClientId)
+                return;
+
+            Debug.Log($"[Lobby][Server] Kicking {targetClientId}");
+
+            NetworkManager.Singleton.DisconnectClient(
+                targetClientId,
+                ((int)LobbyErrorCode.LobbyClosed).ToString()
+            );
+        }
+
+        #endregion
+
+        
+        
+        #region Ready System
+
+        [Rpc(SendTo.Server)]
+        public void SetReadyServerRpc(bool ready, RpcParams rpcParams = default)
+        {
+            var sender = rpcParams.Receive.SenderClientId;
+
+            for (int i = 0; i < Players.Count; i++)
+            {
+                if (Players[i].ClientId == sender)
+                {
+                    var p = Players[i];
+                    p.IsReady = ready;
+                    Players[i] = p;
+
+                    Debug.Log($"[Lobby][Server] Ready {sender} = {ready}");
+                    return;
+                }
+            }
+        }
+
+        // [Rpc(SendTo.Server)]
+        private bool AreAllReady()
+        {
+            if (Players.Count == 0)
+                return false;
+
+            foreach (var p in Players)
+                if (!p.IsReady)
+                    return false;
+
+            return true;
+        }
+
+        #endregion
+
+        #region Start Game (VALIDATED)
+
+        [Rpc(SendTo.Server)]
+        public void StartGameServerRpc(RpcParams rpcParams = default)
+        {
+            var sender = rpcParams.Receive.SenderClientId;
+
+            // only host can start game
+            if (sender != NetworkManager.ServerClientId)
+            {
+                SendErrorRPC(sender, LobbyErrorCode.UnauthorizedAction);
+                return;
+            }
+
+            if (!AreAllReady())
+            {
+                SendErrorRPC(sender, LobbyErrorCode.NotAllPlayersReady);
+                return;
+            }
+
+            GameplayEnabled.Value = true;
+            Debug.Log("[Lobby][Server] Game started");
+        }
+
+        #endregion
+
+        #region Errors
+
+        [ClientRpc]
+        private void ErrorClientRpc(int errorCode, ClientRpcParams rpcParams = default)
+        {
+            Debug.LogWarning($"[Lobby][Client] Error {(LobbyErrorCode)errorCode}");
+        }
+
+        [Rpc(SendTo.Server)]
+        private void SendErrorRPC(ulong targetClientId, LobbyErrorCode code)
+        {
+            ErrorClientRpc(
+                (int)code,
+                new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = new[] { targetClientId }
+                    }
+                });
+        }
+
+        #endregion
+
+        #region Start / Stop
 
         public void StartHost()
         {
             NetworkManager.Singleton.StartHost();
         }
 
-        public void StartClient()
+        public void StartClient(string userId)
         {
+            NetworkManager.Singleton.NetworkConfig.ConnectionData =
+                Encoding.UTF8.GetBytes(userId);
+
             NetworkManager.Singleton.StartClient();
         }
 
-        public void StartServer()
+        #endregion
+
+        #region Callbacks
+
+        private void LobbyUI_OnHostButtonPress()
         {
-            NetworkManager.Singleton.StartServer();
+            StartHost();
+        }
+        
+        private void LobbyUI_OnJoinButtonPress()
+        {
+            string playerID = _lobbyUI.GetPlayerID();
+            StartClient(playerID);
+        }
+        
+        private void LobbyUI_OnStartButtonPress()
+        {
+            StartGameServerRpc();
+        }
+        
+        private void LobbyUI_OnReadyChange(bool isReady)
+        {
+            SetReadyServerRpc(isReady);
+        }
+
+        #endregion
+
+        public void HideLoadingScreen()
+        {
+            _lobbyUI.HideLoadingScreen();
         }
     }
 }
