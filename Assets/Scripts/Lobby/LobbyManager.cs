@@ -3,6 +3,7 @@ using System.Text;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace NetCodeTest.Lobby
 {
@@ -59,6 +60,8 @@ namespace NetCodeTest.Lobby
 
         [SerializeField] 
         private LobbyUIController _lobbyUI;
+        
+        [SerializeField] private GameObject _lobbyMenu;
 
         // Lobby settings
         public NetworkVariable<FixedString64Bytes> LobbyName = new("Lobby");
@@ -100,6 +103,7 @@ namespace NetCodeTest.Lobby
             _lobbyUI.OnJoinButtonPress += LobbyUI_OnJoinButtonPress;
             _lobbyUI.OnStartButtonPress += LobbyUI_OnStartButtonPress;
             _lobbyUI.OnReadyChanged += LobbyUI_OnReadyChange;
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
 
         private void OnDisable()
@@ -108,6 +112,7 @@ namespace NetCodeTest.Lobby
             _lobbyUI.OnJoinButtonPress -= LobbyUI_OnJoinButtonPress;
             _lobbyUI.OnStartButtonPress -= LobbyUI_OnStartButtonPress;
             _lobbyUI.OnReadyChanged -= LobbyUI_OnReadyChange;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
         }
         #endregion
         
@@ -415,5 +420,12 @@ namespace NetCodeTest.Lobby
         #endregion
 
         public void HideLoadingScreen() => _lobbyUI.HideLoadingScreen();
+        
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            bool isGameScene = scene.name == "Game";
+
+            _lobbyMenu.SetActive(!isGameScene);
+        }
     }
 }
