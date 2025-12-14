@@ -374,7 +374,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.DebugMovementOverlay
   ShowTopMostFoldoutHeaderGroup: 1
-  _showOverlay: 1
+  _showOverlay: 0
   _movementMode: {fileID: 760018313448136030}
   _serverAuthMovement: {fileID: 26558483269920095}
 --- !u!1 &1800434881181835900

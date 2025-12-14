@@ -17,7 +17,10 @@ namespace NetCodeTest.Lobby
         public event Action OnStartButtonPress;
         public event Action<bool> OnReadyChanged;
         #endregion
-        
+
+
+
+        #region Fields
         [SerializeField] private Toggle _readyToggle;
         
         [Header("Buttons")]
@@ -35,8 +38,15 @@ namespace NetCodeTest.Lobby
         [SerializeField] private NetworkSceneLoader _sceneLoader;
 
         [SerializeField] private GameObject _loadingScreen;
-
+        [SerializeField] private TMP_Text _errorText;
         private readonly Dictionary<ulong, LobbyPlayerRow> _rows = new();
+        
+        private bool _suppressReadyToggleCallback;
+
+        #endregion
+        
+        
+        
         #region Unity LifeCycle
 
         private void Awake()
@@ -49,7 +59,14 @@ namespace NetCodeTest.Lobby
             _hostButton.onClick.AddListener(() => OnHostButtonPress?.Invoke() ); 
             _joinButton.onClick.AddListener(() => OnJoinButtonPress?.Invoke() );
             _startGameButton.onClick.AddListener(() => OnStartButtonPress?.Invoke() );
-            _readyToggle.onValueChanged.AddListener((isReady) => OnReadyChanged?.Invoke(isReady));
+            
+            _readyToggle.onValueChanged.AddListener(isReady =>
+            {
+                if (_suppressReadyToggleCallback)
+                    return;
+
+                OnReadyChanged?.Invoke(isReady);
+            });
         }
 
         private void OnDisable()
@@ -62,7 +79,7 @@ namespace NetCodeTest.Lobby
 
         private void Start()
         {
-            LobbyManager.Instance.Players.OnListChanged += OnPlayersChanged;
+            _lobbyManager.Players.OnListChanged += OnPlayersChanged;
             RebuildPlayers();
         }
 #endregion
@@ -84,12 +101,19 @@ namespace NetCodeTest.Lobby
 
             _rows.Clear();
 
-            foreach (var player in LobbyManager.Instance.Players)
+            foreach (var player in _lobbyManager.Players)
             {
                 var row = Instantiate<LobbyPlayerRow>(_playerRowPrefab, _playersRoot);
                 row.Bind(player, NetworkManager.Singleton.IsHost);
                 _rows[player.ClientId] = row;
-            }
+                
+                if (player.ClientId == NetworkManager.Singleton.LocalClientId)
+                {
+                    _suppressReadyToggleCallback = true;
+                    _readyToggle.isOn = player.IsReady;
+                    _suppressReadyToggleCallback = false;
+                }
+            }            
         }
 
         public string GetPlayerID()
@@ -97,6 +121,19 @@ namespace NetCodeTest.Lobby
             return _playerIDInput.text;
         }
         
+        public void ShowError(LobbyErrorCode code)
+        {
+            _errorText.gameObject.SetActive(true);
+            _errorText.text = code switch
+            {
+                LobbyErrorCode.LobbyFull => "Lobby is full",
+                LobbyErrorCode.DuplicateUserId => "User ID already in lobby",
+                LobbyErrorCode.NotAllPlayersReady => "Not all players are ready",
+                LobbyErrorCode.UnauthorizedAction => "Only host can start the game",
+                LobbyErrorCode.LobbyClosed => "Lobby was closed",
+                _ => "Unknown error"
+            };
+        }
 
     }
 }

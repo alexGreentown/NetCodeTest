@@ -73,11 +73,6 @@ namespace NetCodeTest.Lobby
 
         private void Awake()
         {
-            if (NetworkManager.Singleton == null)
-            {
-                Debug.LogError("NetworkManager not found");
-            }
-            
             _lobbyUI = GetComponent<LobbyUIController>();
             if (Instance != null && Instance != this)
             {
@@ -124,16 +119,45 @@ namespace NetCodeTest.Lobby
 
         public override void OnNetworkSpawn()
         {
+            Debug.Log("[Lobby] OnNetworkSpawn()");
+            
             if (IsServer)
             {
                 Debug.Log("[Lobby][Server] LobbyManager spawned");
                 
                 LobbyConnectionApproval.Install();
                 
+                AddHostPlayer();
+                
                 NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
                 NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             }
         }
+        
+        private void AddHostPlayer()
+        {
+            ulong hostClientId = NetworkManager.ServerClientId; // usually 0
+
+            // protect from duplicates in case of scene reload / late init
+            foreach (var p in Players)
+            {
+                if (p.ClientId == hostClientId)
+                    return;
+            }
+
+            string hostUserId = _lobbyUI.GetPlayerID(); 
+            // or real playerID from inputField
+
+            Players.Add(new PlayerLobbyData
+            {
+                ClientId = hostClientId,
+                UserId = hostUserId,
+                IsReady = false
+            });
+
+            Debug.Log("[Lobby][Server] Host added to lobby");
+        }
+
         
         private void OnClientDisconnected(ulong clientId)
         {
@@ -169,7 +193,7 @@ namespace NetCodeTest.Lobby
 
             foreach (var p in Players)
             {
-                if (p.UserId.ToString() == userId)
+                if (p.ClientId == clientId)
                 {
                     error = LobbyErrorCode.DuplicateUserId;
                     return false;
@@ -274,7 +298,10 @@ namespace NetCodeTest.Lobby
         [ClientRpc]
         private void ErrorClientRpc(int errorCode, ClientRpcParams rpcParams = default)
         {
-            Debug.LogWarning($"[Lobby][Client] Error {(LobbyErrorCode)errorCode}");
+            var code = (LobbyErrorCode)errorCode;
+            Debug.LogWarning($"[Lobby][Client] Error {code}");
+
+            _lobbyUI.ShowError(code);
         }
 
         [Rpc(SendTo.Server)]
@@ -298,6 +325,7 @@ namespace NetCodeTest.Lobby
         public void StartHost()
         {
             NetworkManager.Singleton.StartHost();
+            // AddHostPlayer(); del
         }
 
         public void StartClient(string userId)
