@@ -81,8 +81,14 @@ namespace NetCodeTest.Lobby
         
         private void Start()
         {
+            _loadingScreen.SetActive(false);
         }
 #endregion
+
+        public void ShowLoadingScreen()
+        {
+            _loadingScreen.SetActive(true);
+        }
 
         public void HideLoadingScreen()
         {

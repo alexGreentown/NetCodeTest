@@ -17,21 +17,7 @@ namespace NetCodeTest.SceneManagement
 
 
 #region Unity Methods
-        private void OnEnable()
-        {
-            if (NetworkManager.Singleton != null)
-            {
-                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
-            }
-        }
 
-        void OnDisable()
-        {
-            if (NetworkManager.Singleton != null)
-            {
-                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnLoadEventCompleted;
-            }
-        }
 #endregion
 
 
@@ -47,6 +33,11 @@ namespace NetCodeTest.SceneManagement
 
         public override void OnNetworkSpawn()
         {
+            if (NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
+            }
+            
             if (LobbyManager.Instance != null)
             {
                 LobbyManager.Instance.GameplayEnabled.OnValueChanged += OnGameplayChanged;
@@ -59,6 +50,11 @@ namespace NetCodeTest.SceneManagement
             {
                 LobbyManager.Instance.GameplayEnabled.OnValueChanged -= OnGameplayChanged;
             }
+            
+            if (NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnLoadEventCompleted;
+            }
         }
 
         private void OnGameplayChanged(bool _, bool enabled)
@@ -68,6 +64,7 @@ namespace NetCodeTest.SceneManagement
             if (enabled)
             {
                 Debug.Log("[SceneLoader][Server] GameplayEnabled -> loading scene");
+                _loadedClients.Clear();
                 LoadGameScene();
             }
         }
@@ -98,15 +95,19 @@ namespace NetCodeTest.SceneManagement
             if (_loadedClients.Count == NetworkManager.Singleton.ConnectedClientsIds.Count)
             {
                 Debug.Log("[SceneLoader][Server] All clients loaded");
-                HideLoadingClientRpc();
+                HideLoadingScreenClientRpc();
             }
         }
 
         [ClientRpc]
-        private void HideLoadingClientRpc()
+        private void HideLoadingScreenClientRpc()
         {
-            LobbyManager.Instance.HideLoadingScreen();
+            if (LobbyManager.Instance == null)
+                Debug.LogError("No LobbyManager");
+            else
+                LobbyManager.Instance.HideLoadingScreen();
         }
+
 
 #endregion
 
