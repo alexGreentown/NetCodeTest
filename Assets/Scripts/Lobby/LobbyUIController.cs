@@ -49,11 +49,6 @@ namespace NetCodeTest.Lobby
         
         #region Unity LifeCycle
 
-        private void Awake()
-        {
-            _lobbyManager = GetComponent<LobbyManager>();
-        }
-
         private void OnEnable()
         {
             _hostButton.onClick.AddListener(() => OnHostButtonPress?.Invoke() ); 
@@ -67,6 +62,8 @@ namespace NetCodeTest.Lobby
 
                 OnReadyChanged?.Invoke(isReady);
             });
+            
+            _errorText.gameObject.SetActive(false);
         }
 
         private void OnDisable()
@@ -77,10 +74,13 @@ namespace NetCodeTest.Lobby
             _readyToggle.onValueChanged.RemoveAllListeners();
         }
 
+        private void Awake()
+        {
+            _lobbyManager = GetComponent<LobbyManager>();
+        }
+        
         private void Start()
         {
-            _lobbyManager.Players.OnListChanged += OnPlayersChanged;
-            RebuildPlayers();
         }
 #endregion
 
@@ -88,21 +88,33 @@ namespace NetCodeTest.Lobby
         {
             _loadingScreen.SetActive(false);
         }
-        
-        private void OnPlayersChanged(NetworkListEvent<PlayerLobbyData> _)
-        {
-            RebuildPlayers();
-        }
 
-        private void RebuildPlayers()
+        public void RebuildPlayers()
         {
+            Debug.Log($"RebuildPlayers {_lobbyManager.Players.Count}");
+            
             foreach (var row in _rows.Values)
                 Destroy(row.gameObject);
 
             _rows.Clear();
 
+            
+            // check for strange NGO error, same player repeats twice
+            List<PlayerLobbyData> ps = new();
+            
+            
             foreach (var player in _lobbyManager.Players)
             {
+                bool isDuplicated = default;
+                foreach (var pl in ps)
+                {
+                    if(pl.ClientId == player.ClientId)
+                        isDuplicated = true;
+                }
+                if (isDuplicated)
+                    continue;
+                ps.Add(player);
+                
                 var row = Instantiate<LobbyPlayerRow>(_playerRowPrefab, _playersRoot);
                 row.Bind(player, NetworkManager.Singleton.IsHost);
                 _rows[player.ClientId] = row;

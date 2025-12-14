@@ -54,7 +54,7 @@ namespace NetCodeTest.Lobby
     public class LobbyManager : NetworkBehaviour
     {
         #region Fields
-        public static LobbyManager Instance;
+        public static LobbyManager Instance { get; private set; }
 
         [SerializeField] 
         private LobbyUIController _lobbyUI;
@@ -82,9 +82,15 @@ namespace NetCodeTest.Lobby
             }
 
             Instance = this;
+            
             Players = new NetworkList<PlayerLobbyData>();
             
             DontDestroyOnLoad(gameObject);
+        }
+
+        private void Start()
+        {
+            LobbyConnectionApproval.Install();
         }
 
         private void OnEnable()
@@ -121,43 +127,30 @@ namespace NetCodeTest.Lobby
         {
             Debug.Log("[Lobby] OnNetworkSpawn()");
             
+            Players.OnListChanged += OnPlayersChanged;
+            _lobbyUI.RebuildPlayers();
+            
             if (IsServer)
             {
                 Debug.Log("[Lobby][Server] LobbyManager spawned");
                 
-                LobbyConnectionApproval.Install();
-                
-                AddHostPlayer();
-                
                 NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
                 NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+                
+            }
+            
+            if (IsServer && NetworkManager.Singleton.IsHost)
+            {
+                //AddHostPlayer(); 
             }
         }
-        
-        private void AddHostPlayer()
+
+        private void OnPlayersChanged(NetworkListEvent<PlayerLobbyData> events)
         {
-            ulong hostClientId = NetworkManager.ServerClientId; // usually 0
-
-            // protect from duplicates in case of scene reload / late init
-            foreach (var p in Players)
-            {
-                if (p.ClientId == hostClientId)
-                    return;
-            }
-
-            string hostUserId = _lobbyUI.GetPlayerID(); 
-            // or real playerID from inputField
-
-            Players.Add(new PlayerLobbyData
-            {
-                ClientId = hostClientId,
-                UserId = hostUserId,
-                IsReady = false
-            });
-
-            Debug.Log("[Lobby][Server] Host added to lobby");
+            Debug.Log($"OnPlayersChanged {events.Value.UserId} {Players.Count}");
+            
+            _lobbyUI.RebuildPlayers();
         }
-
         
         private void OnClientDisconnected(ulong clientId)
         {
@@ -176,13 +169,23 @@ namespace NetCodeTest.Lobby
         }private void OnClientConnected(ulong clientId)
         {
             Debug.Log($"[Lobby][Server] Player Connected {clientId}");
+            
+            string userId = clientId == NetworkManager.ServerClientId
+                ? _lobbyUI.GetPlayerID()
+                : $"client_{clientId}"; // временно, ниже улучшим
+
+            if (!TryAddPlayer(clientId, userId, out var error))
+            {
+                Debug.LogWarning($"[Lobby][Server] Add on connect failed: {error} clientId={clientId}");
+                // Для обычного клиента можно сразу отключить:
+                if (clientId != NetworkManager.ServerClientId)
+                    NetworkManager.Singleton.DisconnectClient(clientId);
+                return;
+            }
         }
 
-        //[Rpc(SendTo.Server)]
-        public bool TryAddPlayer(ulong clientId, string userId, out LobbyErrorCode error)
+        public bool CanJoin(ulong clientId, string userId, out LobbyErrorCode error)
         {
-            Debug.Log($"[Lobby][Server] TryAddPlayer {clientId} userId={userId}");
-
             error = LobbyErrorCode.None;
 
             if (Players.Count >= MaxPlayers.Value)
@@ -200,6 +203,17 @@ namespace NetCodeTest.Lobby
                 }
             }
 
+            return true;
+        }
+
+        //[Rpc(SendTo.Server)]
+        public bool TryAddPlayer(ulong clientId, string userId, out LobbyErrorCode error)
+        {
+            Debug.Log($"[Lobby][Server] TryAddPlayer {clientId} userId={userId}");
+
+            if (!CanJoin(clientId, userId, out error))
+                return false;
+            
             Players.Add(new PlayerLobbyData
             {
                 ClientId = clientId,
@@ -207,7 +221,6 @@ namespace NetCodeTest.Lobby
                 IsReady = false
             });
 
-            Debug.Log($"[Lobby][Server] Player joined {clientId} ({userId})");
             return true;
         }
 
@@ -325,7 +338,6 @@ namespace NetCodeTest.Lobby
         public void StartHost()
         {
             NetworkManager.Singleton.StartHost();
-            // AddHostPlayer(); del
         }
 
         public void StartClient(string userId)
@@ -363,9 +375,6 @@ namespace NetCodeTest.Lobby
 
         #endregion
 
-        public void HideLoadingScreen()
-        {
-            _lobbyUI.HideLoadingScreen();
-        }
+        public void HideLoadingScreen() => _lobbyUI.HideLoadingScreen();
     }
 }
