@@ -9,10 +9,14 @@ namespace NetCodeTest.Lobby
     /// Handles connection approval ONLY.
     /// Does not add players to the lobby.
     /// Player addition is done in LobbyManager.OnClientConnected.
+    /// Stores userId from payload so LobbyManager can use it in OnClientConnected.
     /// </summary>
     public static class LobbyConnectionApproval
     {
         private static bool _installed;
+
+        // server-only cache: clientId -> userId (from approval payload)
+        private static readonly Dictionary<ulong, string> _approvedUserIds = new();
 
         public static void Install()
         {
@@ -25,6 +29,24 @@ namespace NetCodeTest.Lobby
             Debug.Log("[Lobby][Approval] Installed");
         }
 
+        /// <summary>
+        /// Called by LobbyManager (server) when NGO fires OnClientConnectedCallback.
+        /// We "consume" it so it can't be used twice.
+        /// </summary>
+        public static bool TryConsumeApprovedUserId(ulong clientId, out string userId)
+        {
+            if (_approvedUserIds.TryGetValue(clientId, out userId))
+            {
+                _approvedUserIds.Remove(clientId);
+                return true;
+            }
+
+            userId = null;
+            return false;
+        }
+
+        public static void Clear(ulong clientId) => _approvedUserIds.Remove(clientId);
+
         private static void ApprovalCallback(
             NetworkManager.ConnectionApprovalRequest request,
             NetworkManager.ConnectionApprovalResponse response)
@@ -32,7 +54,7 @@ namespace NetCodeTest.Lobby
             ulong clientId = request.ClientNetworkId;
 
             Debug.Log($"[Lobby][Approval] Connection request clientId={clientId}");
-            
+
             // Host connection is auto-approved by NGO and cannot be declined.
             if (clientId == NetworkManager.ServerClientId)
             {
@@ -57,6 +79,9 @@ namespace NetCodeTest.Lobby
                 return;
             }
 
+            // store real userId for OnClientConnected
+            _approvedUserIds[clientId] = userId;
+
             response.Approved = true;
             response.CreatePlayerObject = true;
 
@@ -70,7 +95,8 @@ namespace NetCodeTest.Lobby
 
             try
             {
-                return Encoding.UTF8.GetString(payload);
+                var s = Encoding.UTF8.GetString(payload);
+                return string.IsNullOrWhiteSpace(s) ? "unknown" : s.Trim();
             }
             catch
             {

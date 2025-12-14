@@ -17,6 +17,7 @@ namespace NetCodeTest.Lobby
         None = 0,
         LobbyFull = 101,
         DuplicateUserId = 103,
+        WrongUserId = 104,
         LobbyClosed = 102,
         NotAllPlayersReady = 106,
         UnauthorizedAction = 107
@@ -106,6 +107,7 @@ namespace NetCodeTest.Lobby
             _lobbyUI.OnHostButtonPress -= LobbyUI_OnHostButtonPress;
             _lobbyUI.OnJoinButtonPress -= LobbyUI_OnJoinButtonPress;
             _lobbyUI.OnStartButtonPress -= LobbyUI_OnStartButtonPress;
+            _lobbyUI.OnReadyChanged -= LobbyUI_OnReadyChange;
         }
         #endregion
         
@@ -166,21 +168,39 @@ namespace NetCodeTest.Lobby
                 }
             }
             
-        }private void OnClientConnected(ulong clientId)
+        }
+        
+        private void OnClientConnected(ulong clientId)
         {
-            Debug.Log($"[Lobby][Server] Player Connected {clientId}");
+            Debug.Log($"[Lobby] OnClientConnected {clientId}");
             
-            string userId = clientId == NetworkManager.ServerClientId
-                ? _lobbyUI.GetPlayerID()
-                : $"client_{clientId}"; // временно, ниже улучшим
+            if (!IsServer) return;
+
+            Debug.Log($"[Lobby][Server] OnClientConnected {clientId}");
+
+            string userId;
+
+            // Host: userId from input field; Host has no payload approval
+            if (clientId == NetworkManager.ServerClientId)
+            {
+                userId = _lobbyUI.GetPlayerID();
+            }
+            else
+            {
+                // simple client, gets userId from approval payload
+                if (!LobbyConnectionApproval.TryConsumeApprovedUserId(clientId, out userId))
+                {
+                    Debug.LogWarning($"[Lobby][Server] Missing approved userId for clientId={clientId}, disconnecting");
+                    NetworkManager.Singleton.DisconnectClient(clientId);
+                    return;
+                }
+            }
 
             if (!TryAddPlayer(clientId, userId, out var error))
             {
                 Debug.LogWarning($"[Lobby][Server] Add on connect failed: {error} clientId={clientId}");
-                // Для обычного клиента можно сразу отключить:
                 if (clientId != NetworkManager.ServerClientId)
                     NetworkManager.Singleton.DisconnectClient(clientId);
-                return;
             }
         }
 
@@ -194,9 +214,21 @@ namespace NetCodeTest.Lobby
                 return false;
             }
 
+            if (string.IsNullOrWhiteSpace(userId) || userId == "unknown" || userId == "invalid")
+            {
+                error = LobbyErrorCode.WrongUserId; 
+                return false;
+            }
+
             foreach (var p in Players)
             {
                 if (p.ClientId == clientId)
+                {
+                    error = LobbyErrorCode.DuplicateUserId;
+                    return false;
+                }
+
+                if (p.UserId.ToString() == userId)
                 {
                     error = LobbyErrorCode.DuplicateUserId;
                     return false;
@@ -206,7 +238,7 @@ namespace NetCodeTest.Lobby
             return true;
         }
 
-        //[Rpc(SendTo.Server)]
+
         public bool TryAddPlayer(ulong clientId, string userId, out LobbyErrorCode error)
         {
             Debug.Log($"[Lobby][Server] TryAddPlayer {clientId} userId={userId}");
