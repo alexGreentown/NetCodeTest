@@ -56,11 +56,14 @@ namespace NetCodeTest.Gameplay.Player
         {
             // if player exited and the object is hold, then release
             if (!IsServer) return;
-            if (_heldRef.TryGet(out var nob))
+            if (_heldRef.TryGet(out var networkObject))
             {
-                var shared = nob.GetComponent<SharedPhysicsObject>();
+                var shared = networkObject.GetComponent<SharedPhysicsObject>();
                 if (shared != null) shared.DropServer(OwnerClientId);
             }
+            
+            _heldRef = default;
+            _heldObjectId.Value = 0;
         }
         
         private bool TryFindTarget(out ulong objectId)
@@ -87,18 +90,21 @@ namespace NetCodeTest.Gameplay.Player
             if (!IsServer) return;
             if (_heldRef.TryGet(out _)) return; // already holding object
 
-            if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(objectId, out var nob))
+            if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(objectId, out var networkObject))
                 return;
 
-            var shared = nob.GetComponent<SharedPhysicsObject>();
+            var shared = networkObject.GetComponent<SharedPhysicsObject>();
             if (shared == null) return;
 
             // simple validation by distance
-            if ((nob.transform.position - transform.position).sqrMagnitude > _grabDistance * _grabDistance)
+            if ((networkObject.transform.position - transform.position).sqrMagnitude > _grabDistance * _grabDistance)
                 return;
 
             if (shared.TryGrabServer(OwnerClientId))
-                _heldRef = new NetworkObjectReference(nob);
+            {
+                _heldRef = new NetworkObjectReference(networkObject);
+                _heldObjectId.Value = networkObject.NetworkObjectId;
+            }
         }
 
         [Rpc(SendTo.Server)]
@@ -109,7 +115,10 @@ namespace NetCodeTest.Gameplay.Player
 
             var shared = nob.GetComponent<SharedPhysicsObject>();
             if (shared != null && shared.DropServer(OwnerClientId))
+            {
                 _heldRef = default;
+                _heldObjectId.Value = 0;
+            }
         }
 
         [Rpc(SendTo.Server)]
@@ -120,7 +129,10 @@ namespace NetCodeTest.Gameplay.Player
 
             var shared = nob.GetComponent<SharedPhysicsObject>();
             if (shared != null && shared.ThrowServer(OwnerClientId, transform.forward, _throwImpulse))
+            {
                 _heldRef = default;
+                _heldObjectId.Value = 0;
+            }
         }
 
         [Rpc(SendTo.Server)]
@@ -134,7 +146,10 @@ namespace NetCodeTest.Gameplay.Player
 
             var shared = nob.GetComponent<SharedPhysicsObject>();
             if (shared != null && shared.DeleteServer(sender))
+            {
                 _heldRef = default;
+                _heldObjectId.Value = 0;
+            }
         }
         
         
