@@ -6,12 +6,15 @@ namespace NetCodeTest.Lobby
 {
     public class LobbyPlayerRow : MonoBehaviour
     {
+        #region Fields
         [SerializeField] private TMP_Text _userIdText;
         [SerializeField] private Image _readyIndicator;
         [SerializeField] private Button _kickButton;
         [SerializeField] private TMP_Text _hostLabel;
 
         private ulong _clientId;
+        [SerializeField] private TMP_Text _pingText;
+        #endregion  
 
         public void Bind(PlayerLobbyData data, bool isHost)
         {
@@ -19,6 +22,8 @@ namespace NetCodeTest.Lobby
             _userIdText.text = data.UserId.ToString();
             _readyIndicator.color = data.IsReady ? Color.green : Color.red;
 
+            _pingText.text = $"Ping: {data.PingMs} ms";
+            
             // hide kick button for all clients
             _kickButton.gameObject.SetActive(isHost && data.ClientId != 0);
             

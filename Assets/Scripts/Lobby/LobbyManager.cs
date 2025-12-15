@@ -29,12 +29,14 @@ namespace NetCodeTest.Lobby
         public ulong ClientId;
         public FixedString64Bytes UserId;
         public bool IsReady;
+        public ushort PingMs;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref ClientId);
             serializer.SerializeValue(ref UserId);
             serializer.SerializeValue(ref IsReady);
+            serializer.SerializeValue(ref PingMs);
         }    
         
         public bool Equals(PlayerLobbyData other)
@@ -432,5 +434,21 @@ namespace NetCodeTest.Lobby
             _lobbyUI.HideLobbyMenu();
         } 
         
+        public void UpdatePing(ulong clientId, ushort pingMs)
+        {
+            if (!IsServer) return;
+
+            for (int i = 0; i < Players.Count; i++)
+            {
+                if (Players[i].ClientId == clientId)
+                {
+                    var p = Players[i];
+                    p.PingMs = pingMs;
+                    Players[i] = p; // IMPORTANT: reassign
+                    return;
+                }
+            }
+        }
+
     }
 }
