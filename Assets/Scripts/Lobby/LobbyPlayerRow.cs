@@ -23,7 +23,8 @@ namespace NetCodeTest.Lobby
             _kickButton.gameObject.SetActive(isHost && data.ClientId != 0);
             
             // the host see "host" label instead of kick button on his player data
-            _hostLabel.gameObject.SetActive(isHost && data.ClientId == 0);
+            // show "host" label in clients too
+            _hostLabel.gameObject.SetActive(data.ClientId == 0);
             
             _kickButton.onClick.RemoveAllListeners();
             _kickButton.onClick.AddListener(OnKick);

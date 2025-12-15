@@ -38,6 +38,7 @@ namespace NetCodeTest.Lobby
         [SerializeField] private NetworkSceneLoader _sceneLoader;
 
         [SerializeField] private GameObject _loadingScreen;
+        [SerializeField] private GameObject _lobbyMenu;
         [SerializeField] private TMP_Text _errorText;
         private readonly Dictionary<ulong, LobbyPlayerRow> _rows = new();
         
@@ -95,6 +96,12 @@ namespace NetCodeTest.Lobby
             if(_loadingScreen!=null)
                 _loadingScreen.SetActive(false);
         }
+        
+        public void HideLobbyMenu()
+        {
+            if(_lobbyMenu!=null)
+                _lobbyMenu.SetActive(false);
+        }
 
         public void RebuildPlayers()
         {
@@ -146,7 +153,7 @@ namespace NetCodeTest.Lobby
             _errorText.text = code switch
             {
                 LobbyErrorCode.LobbyFull => "Lobby is full",
-                LobbyErrorCode.DuplicateUserId => "User ID already in lobby",
+                LobbyErrorCode.DuplicateUserId => "Name already taken. Choose another.",
                 LobbyErrorCode.NotAllPlayersReady => "Not all players are ready",
                 LobbyErrorCode.UnauthorizedAction => "Only host can start the game",
                 LobbyErrorCode.LobbyClosed => "Lobby was closed",

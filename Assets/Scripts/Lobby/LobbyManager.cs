@@ -134,7 +134,7 @@ namespace NetCodeTest.Lobby
         {
             Debug.Log("[Lobby] OnNetworkSpawn()");
             
-            Players.OnListChanged += OnPlayersChanged;
+            Players.OnListChanged += OnPlayersListChanged;
             _lobbyUI.RebuildPlayers();
             
             if (IsServer)
@@ -152,9 +152,9 @@ namespace NetCodeTest.Lobby
             }
         }
 
-        private void OnPlayersChanged(NetworkListEvent<PlayerLobbyData> events)
+        private void OnPlayersListChanged(NetworkListEvent<PlayerLobbyData> events)
         {
-            Debug.Log($"OnPlayersChanged {events.Value.UserId} {Players.Count}");
+            // Debug.Log($"OnPlayersListChanged {events.Value.UserId} {Players.Count}");
             
             _lobbyUI.RebuildPlayers();
         }
@@ -418,8 +418,6 @@ namespace NetCodeTest.Lobby
         }
 
         #endregion
-
-        public void HideLoadingScreen() => _lobbyUI.HideLoadingScreen();
         
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
@@ -427,5 +425,12 @@ namespace NetCodeTest.Lobby
 
             _lobbyMenu.SetActive(!isGameScene);
         }
+        
+        public void StartGameScene()
+        {
+            _lobbyUI.HideLoadingScreen();
+            _lobbyUI.HideLobbyMenu();
+        } 
+        
     }
 }

@@ -95,17 +95,17 @@ namespace NetCodeTest.SceneManagement
             if (_loadedClients.Count == NetworkManager.Singleton.ConnectedClientsIds.Count)
             {
                 Debug.Log("[SceneLoader][Server] All clients loaded");
-                HideLoadingScreenClientRpc();
+                StartGameSceneClientRpc();
             }
         }
 
         [ClientRpc]
-        private void HideLoadingScreenClientRpc()
+        private void StartGameSceneClientRpc()
         {
             if (LobbyManager.Instance == null)
                 Debug.LogError("No LobbyManager");
             else
-                LobbyManager.Instance.HideLoadingScreen();
+                LobbyManager.Instance.StartGameScene();
         }
 
 
