@@ -48,6 +48,10 @@ namespace NetCodeTest.Gameplay.Player
 
 #region Spawn Object     
         private bool _spawnObjectPressed;
+        private bool _grabObjectPressed;
+        private bool _dropObjectPressed;
+        private bool _throwObjectPressed;
+        private bool _deleteObjectPressed;
 
         // PlayerInput (Invoke Unity Events) Spawn Object (bind key F)
         public void OnSpawnObject(InputAction.CallbackContext ctx)
@@ -60,6 +64,62 @@ namespace NetCodeTest.Gameplay.Player
         {
             if (!_spawnObjectPressed) return false;
             _spawnObjectPressed = false;
+            return true;
+        }         
+        
+        // PlayerInput (Invoke Unity Events) Grab Object (bind key G)
+        public void OnGrabObject(InputAction.CallbackContext ctx)
+        {
+            if (ctx.performed)
+                _grabObjectPressed = true;
+        }
+        
+        public bool ConsumeGrabPressed()
+        {
+            if (!_grabObjectPressed) return false;
+            _grabObjectPressed = false;
+            return true;
+        }      
+        
+        // PlayerInput (Invoke Unity Events) Drop Object (bind key R)
+        public void OnDropObject(InputAction.CallbackContext ctx)
+        {
+            if (ctx.performed)
+                _dropObjectPressed = true;
+        }
+        
+        public bool ConsumeDropPressed()
+        {
+            if (!_dropObjectPressed) return false;
+            _dropObjectPressed = false;
+            return true;
+        }
+        
+        // PlayerInput (Invoke Unity Events) Throw Object (bind key T)
+        public void OnThrowObject(InputAction.CallbackContext ctx)
+        {
+            if (ctx.performed)
+                _throwObjectPressed = true;
+        }
+        
+        public bool ConsumeThrowPressed()
+        {
+            if (!_throwObjectPressed) return false;
+            _throwObjectPressed = false;
+            return true;
+        }
+        
+        // PlayerInput (Invoke Unity Events) Delete Object (bind key V)
+        public void OnDeleteObject(InputAction.CallbackContext ctx)
+        {
+            if (ctx.performed)
+                _deleteObjectPressed = true;
+        }
+        
+        public bool ConsumeDeletePressed()
+        {
+            if (!_deleteObjectPressed) return false;
+            _deleteObjectPressed = false;
             return true;
         }
 #endregion   

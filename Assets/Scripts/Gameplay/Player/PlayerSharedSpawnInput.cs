@@ -29,8 +29,19 @@ namespace NetCodeTest.Gameplay.Player
             if (_input.ConsumeSpawnPressed())
             {
                 Vector3 spawnPos = transform.position + transform.forward * 2f;
-                _sharedSpawner.SpawnSharedObjectServerRpc(spawnPos);
+                RequestSpawnSharedObjectServerRpc(spawnPos);
             }
+        }
+        
+        [Rpc(SendTo.Server)]
+        private void RequestSpawnSharedObjectServerRpc(Vector3 position)
+        {
+            if (!IsServer) return;
+
+            // найдём спавнер и поручим ему заспавнить
+            var spawner = Object.FindFirstObjectByType<SharedObjectSpawner>();
+            if (spawner != null)
+                spawner.SpawnSharedObject(position);
         }
     }
 }

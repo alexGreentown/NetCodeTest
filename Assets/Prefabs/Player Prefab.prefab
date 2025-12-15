@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 26558483269920095}
   - component: {fileID: 6627682515607501845}
   - component: {fileID: 3471426950223993464}
+  - component: {fileID: 1072476201139203355}
   m_Layer: 0
   m_Name: Player Prefab
   m_TagString: Untagged
@@ -43,6 +44,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8540141788759063692}
+  - {fileID: 4681189102052292507}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4960054829713619718
@@ -57,7 +59,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3772825055
+  GlobalObjectIdHash: 1812668123
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -274,6 +276,74 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 0f9ba458-b0fd-413e-abe8-01f54c0de8db
     m_ActionName: 'Player/SpawnObject[/Keyboard/f]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: -2495137596757284126}
+        m_TargetAssemblyTypeName: NetCodeTest.Gameplay.Player.PlayerInputSource,
+          Assembly-CSharp
+        m_MethodName: OnGrabObject
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 572244f5-5dea-4eec-ad37-7ec4ec7f384b
+    m_ActionName: 'Player/Grab[/Keyboard/g]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: -2495137596757284126}
+        m_TargetAssemblyTypeName: NetCodeTest.Gameplay.Player.PlayerInputSource,
+          Assembly-CSharp
+        m_MethodName: OnThrowObject
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 3f35077e-5a1a-4d6b-977f-308dc14e601a
+    m_ActionName: 'Player/Throw[/Keyboard/t]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: -2495137596757284126}
+        m_TargetAssemblyTypeName: NetCodeTest.Gameplay.Player.PlayerInputSource,
+          Assembly-CSharp
+        m_MethodName: OnDropObject
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: b32b46f3-4a56-40bf-b1a7-3cef780ea6a3
+    m_ActionName: 'Player/Drop[/Keyboard/r]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: -2495137596757284126}
+        m_TargetAssemblyTypeName: NetCodeTest.Gameplay.Player.PlayerInputSource,
+          Assembly-CSharp
+        m_MethodName: OnDeleteObject
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: fdb11c0b-edeb-4294-8b16-0f2e29c8dbfa
+    m_ActionName: 'Player/Delete[/Keyboard/v]'
   m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
@@ -409,6 +479,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerSharedSpawnInput
   ShowTopMostFoldoutHeaderGroup: 1
   _sharedSpawner: {fileID: 0}
+--- !u!114 &1072476201139203355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02c3d0331566359498d1fe9848467db9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerSharedObjectInteractor
+  ShowTopMostFoldoutHeaderGroup: 1
+  _grabDistance: 3
+  _grabbableMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _throwImpulse: 10
+  _camera: {fileID: 0}
 --- !u!1 &1800434881181835900
 GameObject:
   m_ObjectHideFlags: 0
@@ -522,3 +611,128 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1825373974176834366
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4681189102052292507}
+  - component: {fileID: 223601674289296263}
+  - component: {fileID: 5212392492327286948}
+  - component: {fileID: 2844785004003329408}
+  - component: {fileID: 8439800024935558599}
+  m_Layer: 0
+  m_Name: Hold Anchor Sphere
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4681189102052292507
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1825373974176834366}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.24, z: 1.08}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1691709512558352996}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &223601674289296263
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1825373974176834366}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &5212392492327286948
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1825373974176834366}
+  m_Enabled: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!135 &2844785004003329408
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1825373974176834366}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8439800024935558599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1825373974176834366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9861bedef103f94990daaa3e24fd138, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerHoldAnchor
+  _anchor: {fileID: 4681189102052292507}

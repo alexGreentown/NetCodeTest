@@ -7,8 +7,7 @@ namespace NetCodeTest.Gameplay.NetworkObjects
     {
         [SerializeField] private NetworkObject sharedPrefab;
 
-        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-        public void SpawnSharedObjectServerRpc(Vector3 position)
+        public void SpawnSharedObject(Vector3 position)
         {
             if (!IsServer) return;
 
