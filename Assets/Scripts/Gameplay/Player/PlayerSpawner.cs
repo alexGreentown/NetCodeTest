@@ -3,73 +3,102 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class PlayerSpawner : NetworkBehaviour
+namespace NetCodeTest.Gameplay
 {
-    [SerializeField] private NetworkObject playerPrefab;
-    [SerializeField] private string gameSceneName = "Game";
-
-    private readonly HashSet<ulong> _spawned = new();
-
-    public override void OnNetworkSpawn()
+    public class PlayerSpawner : NetworkBehaviour
     {
-        if (!IsServer) return;
+        private SpawnPoint[] _spawnPoints;
+        private int _nextSpawnIndex;
 
-        DontDestroyOnLoad(gameObject);
-        
-        NetworkManager.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
-        NetworkManager.OnClientConnectedCallback += OnClientConnected;
-        NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
-    }
+        [SerializeField] private NetworkObject playerPrefab;
+        [SerializeField] private string gameSceneName = "Game";
 
-    public override void OnNetworkDespawn()
-    {
-        if (!IsServer) return;
+        private readonly HashSet<ulong> _spawned = new();
 
-        NetworkManager.SceneManager.OnLoadEventCompleted -= OnLoadEventCompleted;
-        NetworkManager.OnClientConnectedCallback -= OnClientConnected;
-        NetworkManager.OnClientDisconnectCallback -= OnClientDisconnected;
-    }
+        public override void OnNetworkSpawn()
+        {
+            if (!IsServer) return;
 
-    private void OnLoadEventCompleted(
-        string sceneName,
-        LoadSceneMode mode,
-        IReadOnlyList<ulong> clientsCompleted,
-        IReadOnlyList<ulong> clientsTimedOut)
-    {
-        if (sceneName != gameSceneName) return;
+            DontDestroyOnLoad(gameObject);
 
-        // start again
-        _spawned.Clear();
+            NetworkManager.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
+            NetworkManager.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
+        }
 
-        foreach (var clientId in clientsCompleted)
+        public override void OnNetworkDespawn()
+        {
+            if (!IsServer) return;
+
+            NetworkManager.SceneManager.OnLoadEventCompleted -= OnLoadEventCompleted;
+            NetworkManager.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.OnClientDisconnectCallback -= OnClientDisconnected;
+        }
+
+        private void OnLoadEventCompleted(
+            string sceneName,
+            LoadSceneMode mode,
+            IReadOnlyList<ulong> clientsCompleted,
+            IReadOnlyList<ulong> clientsTimedOut)
+        {
+            if (sceneName != gameSceneName) return;
+
+            // start again
+            _spawned.Clear();
+            
+            CacheSpawnPoints();
+
+            foreach (var clientId in clientsCompleted)
+                SpawnIfNeeded(clientId);
+        }
+
+        private void OnClientConnected(ulong clientId)
+        {
+            // Late-join: client joined when game scene is active
+            if (SceneManager.GetActiveScene().name != gameSceneName)
+                return;
+
             SpawnIfNeeded(clientId);
-    }
+        }
 
-    private void OnClientConnected(ulong clientId)
-    {
-        // Late-join: client joined when game scene is active
-        if (SceneManager.GetActiveScene().name != gameSceneName)
-            return;
+        private void OnClientDisconnected(ulong clientId)
+        {
+            _spawned.Remove(clientId);
+        }
 
-        SpawnIfNeeded(clientId);
-    }
+        private void SpawnIfNeeded(ulong clientId)
+        {
+            if (_spawned.Contains(clientId))
+                return;
+            
 
-    private void OnClientDisconnected(ulong clientId)
-    {
-        _spawned.Remove(clientId);
-    }
+            var obj = Instantiate(playerPrefab);
+            obj.transform.position = GetNextSpawnPosition();
+            // create PlayerObject for client (ownership)
+            obj.SpawnAsPlayerObject(clientId, destroyWithScene: true);
 
-    private void SpawnIfNeeded(ulong clientId)
-    {
-        if (_spawned.Contains(clientId))
-            return;
+            _spawned.Add(clientId);
+            Debug.Log($"[Spawner][Server] Spawned player for {clientId}");
+        }
 
-        var obj = Instantiate(playerPrefab);
+        #region Spawn points
 
-        // create PlayerObject for client (ownership)
-        obj.SpawnAsPlayerObject(clientId, destroyWithScene: true);
+        private void CacheSpawnPoints()
+        {
+            _spawnPoints = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None);
+            _nextSpawnIndex = 0;
+        }
 
-        _spawned.Add(clientId);
-        Debug.Log($"[Spawner][Server] Spawned player for {clientId}");
+        private Vector3 GetNextSpawnPosition()
+        {
+            if (_spawnPoints == null || _spawnPoints.Length == 0)
+                return Vector3.zero;
+
+            var pos = _spawnPoints[_nextSpawnIndex % _spawnPoints.Length].transform.position;
+            _nextSpawnIndex++;
+            return pos;
+        }
+
+        #endregion
     }
 }

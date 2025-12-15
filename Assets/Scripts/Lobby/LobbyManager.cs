@@ -129,7 +129,7 @@ namespace NetCodeTest.Lobby
         {
             Debug.Log("[Lobby] OnNetworkSpawn()");
             
-            Players.OnListChanged += OnPlayersChanged;
+            Players.OnListChanged += OnPlayersListChanged;
             _lobbyUI.RebuildPlayers();
             
             if (IsServer)
@@ -147,9 +147,9 @@ namespace NetCodeTest.Lobby
             }
         }
 
-        private void OnPlayersChanged(NetworkListEvent<PlayerLobbyData> events)
+        private void OnPlayersListChanged(NetworkListEvent<PlayerLobbyData> events)
         {
-            Debug.Log($"OnPlayersChanged {events.Value.UserId} {Players.Count}");
+            // Debug.Log($"OnPlayersListChanged {events.Value.UserId} {Players.Count}");
             
             _lobbyUI.RebuildPlayers();
         }
