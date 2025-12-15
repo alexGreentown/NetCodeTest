@@ -146,7 +146,7 @@ namespace NetCodeTest.Lobby
             _errorText.text = code switch
             {
                 LobbyErrorCode.LobbyFull => "Lobby is full",
-                LobbyErrorCode.DuplicateUserId => "User ID already in lobby",
+                LobbyErrorCode.DuplicateUserId => "Name already taken. Choose another.",
                 LobbyErrorCode.NotAllPlayersReady => "Not all players are ready",
                 LobbyErrorCode.UnauthorizedAction => "Only host can start the game",
                 LobbyErrorCode.LobbyClosed => "Lobby was closed",
