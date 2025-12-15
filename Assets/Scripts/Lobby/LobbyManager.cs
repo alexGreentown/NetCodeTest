@@ -414,6 +414,10 @@ namespace NetCodeTest.Lobby
 
         #endregion
 
-        public void HideLoadingScreen() => _lobbyUI.HideLoadingScreen();
+        public void StartGameScene()
+        {
+            _lobbyUI.HideLoadingScreen();
+            _lobbyUI.HideLobbyMenu();
+        } 
     }
 }

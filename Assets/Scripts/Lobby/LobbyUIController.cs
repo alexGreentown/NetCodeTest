@@ -38,6 +38,7 @@ namespace NetCodeTest.Lobby
         [SerializeField] private NetworkSceneLoader _sceneLoader;
 
         [SerializeField] private GameObject _loadingScreen;
+        [SerializeField] private GameObject _lobbyMenu;
         [SerializeField] private TMP_Text _errorText;
         private readonly Dictionary<ulong, LobbyPlayerRow> _rows = new();
         
@@ -94,6 +95,12 @@ namespace NetCodeTest.Lobby
         {
             if(_loadingScreen!=null)
                 _loadingScreen.SetActive(false);
+        }
+        
+        public void HideLobbyMenu()
+        {
+            if(_lobbyMenu!=null)
+                _lobbyMenu.SetActive(false);
         }
 
         public void RebuildPlayers()

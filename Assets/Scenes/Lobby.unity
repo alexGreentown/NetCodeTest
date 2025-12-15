@@ -784,6 +784,7 @@ MonoBehaviour:
   _playerIDInput: {fileID: 875139334}
   _sceneLoader: {fileID: 666669312}
   _loadingScreen: {fileID: 1856219238}
+  _lobbyMenu: {fileID: 1745712406}
   _errorText: {fileID: 2128333510}
 --- !u!114 &666669314
 MonoBehaviour:
