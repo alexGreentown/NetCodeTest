@@ -67,7 +67,7 @@ namespace NetCodeTest.Gameplay.Player
             return true;
         }         
         
-        // PlayerInput (Invoke Unity Events) Grab Object (bind key G)
+        // PlayerInput (Invoke Unity Events) Grab Object (bind key E)
         public void OnGrabObject(InputAction.CallbackContext ctx)
         {
             if (ctx.performed)
@@ -80,20 +80,6 @@ namespace NetCodeTest.Gameplay.Player
             _grabObjectPressed = false;
             return true;
         }      
-        
-        // PlayerInput (Invoke Unity Events) Drop Object (bind key R)
-        public void OnDropObject(InputAction.CallbackContext ctx)
-        {
-            if (ctx.performed)
-                _dropObjectPressed = true;
-        }
-        
-        public bool ConsumeDropPressed()
-        {
-            if (!_dropObjectPressed) return false;
-            _dropObjectPressed = false;
-            return true;
-        }
         
         // PlayerInput (Invoke Unity Events) Throw Object (bind key T)
         public void OnThrowObject(InputAction.CallbackContext ctx)

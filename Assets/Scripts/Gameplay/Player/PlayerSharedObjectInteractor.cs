@@ -18,7 +18,12 @@ namespace NetCodeTest.Gameplay.Player
 
         private PlayerInputSource _input;
         private NetworkObjectReference _heldRef;
+        
+        private readonly NetworkVariable<ulong> _heldObjectId =
+            new(0, NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
+        private bool IsHolding => _heldObjectId.Value != 0;
+        
         private void Awake()
         {
             _input = GetComponent<PlayerInputSource>();
@@ -31,15 +36,33 @@ namespace NetCodeTest.Gameplay.Player
 
             if (_input.ConsumeGrabPressed())
             {
-                if (TryFindTarget(out var objId))
-                    RequestGrabServerRpc(objId);
+                if (IsHolding)
+                {
+                    RequestDropServerRpc();      // E = drop
+                }
+                else if (TryFindTarget(out ulong targetId))
+                {
+                    RequestGrabServerRpc(targetId); // E = grab
+                }
             }
 
-            if (_input.ConsumeDropPressed())   RequestDropServerRpc();
             if (_input.ConsumeThrowPressed())  RequestThrowServerRpc();
             if (_input.ConsumeDeletePressed()) RequestDeleteServerRpc();
         }
 
+        public override void OnNetworkSpawn() => enabled = IsOwner;
+        
+        public override void OnNetworkDespawn()
+        {
+            // if player exited and the object is hold, then release
+            if (!IsServer) return;
+            if (_heldRef.TryGet(out var nob))
+            {
+                var shared = nob.GetComponent<SharedPhysicsObject>();
+                if (shared != null) shared.DropServer(OwnerClientId);
+            }
+        }
+        
         private bool TryFindTarget(out ulong objectId)
         {
             objectId = 0;
@@ -51,10 +74,10 @@ namespace NetCodeTest.Gameplay.Player
             if (!Physics.Raycast(origin, dir, out var hit, _grabDistance, _grabbableMask))
                 return false;
 
-            var nob = hit.collider.GetComponentInParent<NetworkObject>();
-            if (nob == null) return false;
+            var networkObject = hit.collider.GetComponentInParent<NetworkObject>();
+            if (networkObject == null) return false;
 
-            objectId = nob.NetworkObjectId;
+            objectId = networkObject.NetworkObjectId;
             return true;
         }
 
@@ -114,15 +137,6 @@ namespace NetCodeTest.Gameplay.Player
                 _heldRef = default;
         }
         
-        public override void OnNetworkDespawn()
-        {
-            // if player exited and the object is hold, then release
-            if (!IsServer) return;
-            if (_heldRef.TryGet(out var nob))
-            {
-                var shared = nob.GetComponent<SharedPhysicsObject>();
-                if (shared != null) shared.DropServer(OwnerClientId);
-            }
-        }
+        
     }
 }

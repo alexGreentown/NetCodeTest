@@ -115,15 +115,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Drop",
-                    "type": "Button",
-                    "id": "b32b46f3-4a56-40bf-b1a7-3cef780ea6a3",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Delete",
                     "type": "Button",
                     "id": "fdb11c0b-edeb-4294-8b16-0f2e29c8dbfa",
@@ -533,7 +524,7 @@
                 {
                     "name": "",
                     "id": "cb5c2f56-8b38-4fa8-b8c3-1d461947de3b",
-                    "path": "<Keyboard>/g",
+                    "path": "<Keyboard>/e",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -549,17 +540,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Throw",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "752afb14-6714-4e2a-a2ff-8cf51d4b4e58",
-                    "path": "<Keyboard>/r",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Drop",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
