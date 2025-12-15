@@ -44,6 +44,26 @@ namespace NetCodeTest.Gameplay.Player
         {
             _playerInput.enabled = IsOwner;
         }
+
+
+#region Spawn Object     
+        private bool _spawnObjectPressed;
+
+        // PlayerInput (Invoke Unity Events) Spawn Object (bind key F)
+        public void OnSpawnObject(InputAction.CallbackContext ctx)
+        {
+            if (ctx.performed)
+                _spawnObjectPressed = true;
+        }
+
+        public bool ConsumeSpawnPressed()
+        {
+            if (!_spawnObjectPressed) return false;
+            _spawnObjectPressed = false;
+            return true;
+        }
+#endregion   
+
         
     }
 }

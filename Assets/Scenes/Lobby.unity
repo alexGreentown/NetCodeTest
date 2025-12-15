@@ -800,6 +800,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MultiplayerJupiter.LobbyManager
   ShowTopMostFoldoutHeaderGroup: 1
   _lobbyUI: {fileID: 666669313}
+  _lobbyMenu: {fileID: 1745712406}
   LobbyName:
     m_InternalValue:
       utf8LengthInBytes: 5
@@ -1388,46 +1389,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 875139332}
   m_CullTransparentMesh: 1
---- !u!114 &951350551
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2114741679}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3907914560
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 0
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
---- !u!114 &951350552
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2114741679}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a9c88c28019b3ff409195e4e7ac698ef, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
-  ShowTopMostFoldoutHeaderGroup: 1
-  playerPrefab: {fileID: 4960054829713619718, guid: 5045d5a24aeeb2b4fac7c2574a370d8e, type: 3}
-  gameSceneName: Game
 --- !u!1 &1095973098
 GameObject:
   m_ObjectHideFlags: 0
@@ -2052,7 +2013,7 @@ GameObject:
   - component: {fileID: 1745712409}
   - component: {fileID: 1745712408}
   m_Layer: 5
-  m_Name: Fill Panel
+  m_Name: Menu Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3002,39 +2963,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2015920959}
   m_CullTransparentMesh: 1
---- !u!1 &2114741679
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2114741680}
-  - component: {fileID: 951350551}
-  - component: {fileID: 951350552}
-  m_Layer: 0
-  m_Name: PlayerSpawner
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2114741680
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2114741679}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1790.1587, y: 1019.22266, z: -23.8957}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2128333508
 GameObject:
   m_ObjectHideFlags: 0
@@ -3181,4 +3109,3 @@ SceneRoots:
   - {fileID: 666669315}
   - {fileID: 1095973101}
   - {fileID: 36826466}
-  - {fileID: 2114741680}

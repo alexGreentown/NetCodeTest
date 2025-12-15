@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace NetCodeTest.Gameplay
+namespace NetCodeTest.Gameplay.Player
 {
     public class SpawnPoint : MonoBehaviour
     {

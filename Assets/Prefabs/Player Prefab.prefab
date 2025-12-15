@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 1983811688559852843}
   - component: {fileID: 26558483269920095}
   - component: {fileID: 6627682515607501845}
+  - component: {fileID: 3471426950223993464}
   m_Layer: 0
   m_Name: Player Prefab
   m_TagString: Untagged
@@ -256,6 +257,23 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 9caa3d8a-6b2f-4e8e-8bad-6ede561bd9be
     m_ActionName: UI/TrackedDeviceOrientation
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: -2495137596757284126}
+        m_TargetAssemblyTypeName: NetCodeTest.Gameplay.Player.PlayerInputSource,
+          Assembly-CSharp
+        m_MethodName: OnSpawnObject
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 0f9ba458-b0fd-413e-abe8-01f54c0de8db
+    m_ActionName: 'Player/SpawnObject[/Keyboard/f]'
   m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
@@ -327,9 +345,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerMovementMode
   ShowTopMostFoldoutHeaderGroup: 1
-  _ownerAuth: {fileID: 0}
-  _serverAuth: {fileID: 0}
-  _networkTransform: {fileID: 0}
+  _ownerAuth: {fileID: 1983811688559852843}
+  _serverAuth: {fileID: 26558483269920095}
+  _networkTransform: {fileID: 5291956857780870729}
   _runtimeModeView: 0
 --- !u!114 &1983811688559852843
 MonoBehaviour:
@@ -377,6 +395,20 @@ MonoBehaviour:
   _showOverlay: 0
   _movementMode: {fileID: 760018313448136030}
   _serverAuthMovement: {fileID: 26558483269920095}
+--- !u!114 &3471426950223993464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639229117315813450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4f3abd08db9a1a43aab424290f00043, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Gameplay.Player.PlayerSharedSpawnInput
+  ShowTopMostFoldoutHeaderGroup: 1
+  _sharedSpawner: {fileID: 0}
 --- !u!1 &1800434881181835900
 GameObject:
   m_ObjectHideFlags: 0

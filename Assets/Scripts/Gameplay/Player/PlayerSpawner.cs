@@ -3,7 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace NetCodeTest.Gameplay
+namespace NetCodeTest.Gameplay.Player
 {
     public class PlayerSpawner : NetworkBehaviour
     {
@@ -18,8 +18,6 @@ namespace NetCodeTest.Gameplay
         public override void OnNetworkSpawn()
         {
             if (!IsServer) return;
-
-            DontDestroyOnLoad(gameObject);
 
             NetworkManager.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
             NetworkManager.OnClientConnectedCallback += OnClientConnected;
@@ -71,7 +69,6 @@ namespace NetCodeTest.Gameplay
             if (_spawned.Contains(clientId))
                 return;
             
-
             var obj = Instantiate(playerPrefab);
             obj.transform.position = GetNextSpawnPosition();
             // create PlayerObject for client (ownership)
