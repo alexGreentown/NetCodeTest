@@ -42,11 +42,6 @@ public sealed class SharedPhysicsObject : NetworkBehaviour
         {
             _rb.isKinematic = held;
             _rb.useGravity = !held;
-            if (held)
-            {
-                _rb.linearVelocity = Vector3.zero;
-                _rb.angularVelocity = Vector3.zero;
-            }
         }
 
         if (_col != null)

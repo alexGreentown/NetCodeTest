@@ -782,6 +782,7 @@ MonoBehaviour:
   _playersRoot: {fileID: 540439118}
   _playerRowPrefab: {fileID: 4826851560560553677, guid: d46988f91d47caa40bbec949c38c9aba, type: 3}
   _playerIDInput: {fileID: 875139334}
+  _sceneLoader: {fileID: 0}
   _loadingScreen: {fileID: 1856219238}
   _lobbyMenu: {fileID: 1745712406}
   _errorText: {fileID: 2128333510}
@@ -872,6 +873,8 @@ MonoBehaviour:
   MaxPlayers:
     m_InternalValue: 4
   Privacy:
+    m_InternalValue: 0
+  GameplayEnabled:
     m_InternalValue: 0
 --- !u!4 &666669315
 Transform:
@@ -1871,7 +1874,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1394687068}
-  - component: {fileID: 1394687067}
+  - component: {fileID: 1394687069}
   m_Layer: 0
   m_Name: LobbyBootstrap
   m_TagString: Untagged
@@ -1879,19 +1882,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1394687067
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1394687066}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebdfb0023e33c5d4889012b400f89e40, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Bootstrap.LobbyBootstrap
-  _lobbyManager: {fileID: 666669314}
 --- !u!4 &1394687068
 Transform:
   m_ObjectHideFlags: 0
@@ -1907,6 +1897,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1394687069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1394687066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 161bee67e89493a47b8362eaadb982e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetCodeTest.Lobby.LobbyBootstrap
+  _lobbyManager: {fileID: 666669314}
 --- !u!1 &1475254241
 GameObject:
   m_ObjectHideFlags: 0

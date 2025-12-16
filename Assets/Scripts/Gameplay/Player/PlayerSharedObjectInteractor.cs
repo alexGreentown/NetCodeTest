@@ -13,9 +13,6 @@ namespace NetCodeTest.Gameplay.Player
         [Header("Throw")]
         [SerializeField] private float _throwImpulse = 10f;
 
-        [Header("Refs")]
-        [SerializeField] private Camera _camera; // можно оставить null -> возьмём Camera.main
-
         private PlayerInputSource _input;
         private NetworkObjectReference _heldRef;
         
@@ -23,11 +20,11 @@ namespace NetCodeTest.Gameplay.Player
             new(0, NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
         private bool IsHolding => _heldObjectId.Value != 0;
+        private readonly Collider[] _nearby = new Collider[64];
         
         private void Awake()
         {
             _input = GetComponent<PlayerInputSource>();
-            if (_camera == null) _camera = Camera.main;
         }
 
         private void Update()
@@ -70,19 +67,48 @@ namespace NetCodeTest.Gameplay.Player
         {
             objectId = 0;
 
-            var cam = _camera != null ? _camera : Camera.main;
-            Vector3 origin = cam != null ? cam.transform.position : (transform.position + Vector3.up);
-            Vector3 dir    = cam != null ? cam.transform.forward  : transform.forward;
+            Vector3 center = transform.position; // просто расстояние до игрока
+            int count = Physics.OverlapSphereNonAlloc(
+                center,
+                _grabDistance,
+                _nearby,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
 
-            if (!Physics.Raycast(origin, dir, out var hit, _grabDistance, _grabbableMask))
+            if (count <= 0)
                 return false;
 
-            var networkObject = hit.collider.GetComponentInParent<NetworkObject>();
-            if (networkObject == null) return false;
+            float bestSqr = float.MaxValue;
+            SharedPhysicsObject best = null;
 
-            objectId = networkObject.NetworkObjectId;
+            for (int i = 0; i < count; i++)
+            {
+                var col = _nearby[i];
+                if (col == null) continue;
+
+                var shared = col.GetComponentInParent<SharedPhysicsObject>();
+                if (shared == null) continue;
+
+                if (shared.IsHeld) continue;
+
+                if (shared.NetworkObject == null || !shared.NetworkObject.IsSpawned) continue;
+
+                float sqr = (shared.transform.position - transform.position).sqrMagnitude;
+                if (sqr < bestSqr)
+                {
+                    bestSqr = sqr;
+                    best = shared;
+                }
+            }
+
+            if (best == null)
+                return false;
+
+            objectId = best.NetworkObject.NetworkObjectId;
             return true;
         }
+
 
         [Rpc(SendTo.Server)]
         private void RequestGrabServerRpc(ulong objectId)

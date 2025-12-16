@@ -21,6 +21,12 @@ Tweening: DOTween
 
 Architecture: SOLID + Dependency Injection (custom lightweight DI)
 
+## Controls
+C = change player color
+F = create object
+E = grab object
+T = throw object
+V = delete object
 
 ## Dependency Injection
 
