@@ -38,6 +38,8 @@ namespace NetCodeTest.Lobby
             {
                 _ui.ShowError(0);
             }
+            
+            _ui.RebuildPlayers();
         }
         
     }

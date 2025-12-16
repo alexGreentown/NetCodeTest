@@ -53,9 +53,7 @@ namespace NetCodeTest.Lobby
         {
             ulong clientId = request.ClientNetworkId;
 
-            Debug.Log($"[Lobby][Approval] Connection request clientId={clientId}");
-
-            // Host connection is auto-approved by NGO and cannot be declined.
+            // Host auto-approved (NGO), не отклоняем
             if (clientId == NetworkManager.ServerClientId)
             {
                 response.Approved = true;
@@ -64,29 +62,26 @@ namespace NetCodeTest.Lobby
             }
 
             var lobby = LobbyManager.Instance;
-
             if (lobby == null || !lobby.IsSpawned)
             {
                 Deny(response, LobbyErrorCode.LobbyClosed);
                 return;
             }
 
-            string userId = DecodeUserId(request.Payload);
+            var payload = LobbyJoinPayload.Decode(request.Payload);
 
-            if (!lobby.CanJoin(clientId, userId, out var error))
+            if (!lobby.CanJoin(clientId, payload, out var error))
             {
                 Deny(response, error);
                 return;
             }
 
-            // store real userId for OnClientConnected
-            _approvedUserIds[clientId] = userId;
+            _approvedUserIds[clientId] = payload.userId;
 
             response.Approved = true;
             response.CreatePlayerObject = true;
-
-            Debug.Log($"[Lobby][Approval] Approved clientId={clientId}, userId={userId}");
         }
+
 
         private static string DecodeUserId(byte[] payload)
         {

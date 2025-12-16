@@ -43,7 +43,38 @@ namespace NetCodeTest.Lobby
         private readonly Dictionary<ulong, LobbyPlayerRow> _rows = new();
         
         private bool _suppressReadyToggleCallback;
+        
+        [Header("Host Settings")]
+        [SerializeField] private TMP_InputField _lobbyName;
+        [SerializeField] private TMP_InputField _maxPlayers;
+        [SerializeField] private Toggle _privacy;
+        [SerializeField] private TMP_InputField _joinCode;
+        [SerializeField] private TMP_InputField _password;
+        #endregion
 
+
+
+        #region Properties
+        public string GetLobbyName()
+            => string.IsNullOrWhiteSpace(_lobbyName.text)
+                ? "Lobby"
+                : _lobbyName.text.Trim();
+
+        public int GetMaxPlayers()
+            => int.TryParse(_maxPlayers.text, out var v) && v > 0
+                ? v
+                : 4;
+
+        public LobbyPrivacy GetPrivacy()
+            => _privacy.isOn == false
+                ? LobbyPrivacy.Public
+                : LobbyPrivacy.Private;
+
+        public string GetJoinCode()
+            => _joinCode.text.Trim();
+
+        public string GetPassword()
+            => _password.text.Trim();
         #endregion
         
         
@@ -157,6 +188,8 @@ namespace NetCodeTest.Lobby
                 LobbyErrorCode.NotAllPlayersReady => "Not all players are ready",
                 LobbyErrorCode.UnauthorizedAction => "Only host can start the game",
                 LobbyErrorCode.LobbyClosed => "Lobby was closed",
+                LobbyErrorCode.WrongLobbyCode => "Wrong lobby code",
+                LobbyErrorCode.WrongPassword => "Wrong password",
                 _ => "Unknown error"
             };
         }
