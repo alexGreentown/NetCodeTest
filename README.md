@@ -22,6 +22,15 @@ Tweening: DOTween
 Architecture: SOLID + Dependency Injection (custom lightweight DI)
 
 
+## Dependency Injection
+
+Project uses a lightweight custom DI container.
+
+- Composition Root initializes services
+- MonoBehaviours depend on interfaces, not implementations
+
+This keeps the architecture modular, testable and easy to extend.
+
 
 ## Movement Architecture
 

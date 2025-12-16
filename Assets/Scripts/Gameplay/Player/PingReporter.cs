@@ -1,4 +1,5 @@
-using NetCodeTest.Lobby;
+using NetCodeTest.Core.Contracts;
+using NetCodeTest.Core.DI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -6,9 +7,15 @@ namespace NetCodeTest.Gameplay.Player
 {
     public class PingReporter : NetworkBehaviour
     {
+        private ILobbyService _lobby;
         [SerializeField] private float _sendInterval = 1.0f;
         private float _timer;
-
+        
+        private void Awake()
+        {
+            _lobby = ServiceContainer.Resolve<ILobbyService>();
+        }
+        
         private void Update()
         {
             if (!IsClient || !IsOwner) return;
@@ -32,7 +39,7 @@ namespace NetCodeTest.Gameplay.Player
         [ServerRpc]
         private void SendPingServerRpc(ushort pingMs, ServerRpcParams rpcParams = default)
         {
-            LobbyManager.Instance?.UpdatePing(rpcParams.Receive.SenderClientId, pingMs);
+            _lobby?.UpdatePing(rpcParams.Receive.SenderClientId, pingMs);
         }
     }
 }
