@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using Unity.Collections;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -21,7 +22,10 @@ namespace NetCodeTest.Lobby
         WrongUserId = 104,
         LobbyClosed = 102,
         NotAllPlayersReady = 106,
-        UnauthorizedAction = 107
+        UnauthorizedAction = 107,
+        WrongLobbyCode = 108,
+        WrongPassword = 109,
+
     }
 
     public struct PlayerLobbyData : INetworkSerializable, IEquatable<PlayerLobbyData>
@@ -69,8 +73,18 @@ namespace NetCodeTest.Lobby
         public NetworkVariable<FixedString64Bytes> LobbyName = new("Lobby");
         public NetworkVariable<int> MaxPlayers = new(4);
         public NetworkVariable<LobbyPrivacy> Privacy = new(LobbyPrivacy.Public);
+        public NetworkVariable<FixedString64Bytes> JoinCode = new("");
+        public NetworkVariable<FixedString64Bytes> PasswordHash = new(""); // sha256 hex (или пусто)
 
         public NetworkList<PlayerLobbyData> Players;
+        
+        // pending host config (set BEFORE StartHost)
+        private string _pendingLobbyName;
+        private int _pendingMaxPlayers;
+        private LobbyPrivacy _pendingPrivacy;
+        private string _pendingCode;
+        private string _pendingPassword;
+
         #endregion
 
         
@@ -142,16 +156,26 @@ namespace NetCodeTest.Lobby
             if (IsServer)
             {
                 Debug.Log("[Lobby][Server] LobbyManager spawned");
-                
+
+                ConfigureLobbyAsHost(_pendingLobbyName, _pendingMaxPlayers,
+                    _pendingPrivacy,
+                    _pendingCode,
+                    _pendingPassword);
                 NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
                 NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
                 
+                var discovery = FindFirstObjectByType<LanLobbyDiscovery>();
+                if (discovery != null)
+                {
+                    discovery.StartAdvertising(this);
+                    Debug.Log("[LAN] Started advertising lobby");
+                }
+                else
+                {
+                    Debug.LogError("[LAN] LanLobbyDiscovery not found");
+                }
             }
             
-            if (IsServer && NetworkManager.Singleton.IsHost)
-            {
-                //AddHostPlayer(); 
-            }
         }
 
         private void OnPlayersListChanged(NetworkListEvent<PlayerLobbyData> events)
@@ -211,9 +235,11 @@ namespace NetCodeTest.Lobby
             }
         }
 
-        public bool CanJoin(ulong clientId, string userId, out LobbyErrorCode error)
+        public bool CanJoin(ulong clientId, LobbyJoinPayload payload, out LobbyErrorCode error)
         {
             error = LobbyErrorCode.None;
+
+            string userId = payload?.userId ?? "unknown";
 
             if (Players.Count >= MaxPlayers.Value)
             {
@@ -223,8 +249,30 @@ namespace NetCodeTest.Lobby
 
             if (string.IsNullOrWhiteSpace(userId) || userId == "unknown" || userId == "invalid")
             {
-                error = LobbyErrorCode.WrongUserId; 
+                error = LobbyErrorCode.WrongUserId;
                 return false;
+            }
+
+            // privacy: mandatory code, password if assigned
+            if (Privacy.Value == LobbyPrivacy.Private)
+            {
+                string requiredCode = JoinCode.Value.ToString();
+                if (string.IsNullOrWhiteSpace(payload.code) || payload.code != requiredCode)
+                {
+                    error = LobbyErrorCode.WrongLobbyCode;
+                    return false;
+                }
+
+                string requiredHash = PasswordHash.Value.ToString();
+                if (!string.IsNullOrWhiteSpace(requiredHash))
+                {
+                    string pass = payload.password ?? "";
+                    if (HashUtils.Sha256Hex(pass) != requiredHash)
+                    {
+                        error = LobbyErrorCode.WrongPassword;
+                        return false;
+                    }
+                }
             }
 
             foreach (var p in Players)
@@ -246,22 +294,48 @@ namespace NetCodeTest.Lobby
         }
 
 
-        public bool TryAddPlayer(ulong clientId, string userId, out LobbyErrorCode error)
-        {
-            Debug.Log($"[Lobby][Server] TryAddPlayer {clientId} userId={userId}");
 
-            if (!CanJoin(clientId, userId, out error))
+        public bool TryAddPlayer(ulong clientId, LobbyJoinPayload payload, out LobbyErrorCode error)
+        {
+            // payload could be null
+            payload ??= new LobbyJoinPayload { userId = "unknown", code = "", password = "" };
+
+            Debug.Log($"[Lobby][Server] TryAddPlayer clientId={clientId} userId={payload.userId} code={payload.code}");
+
+            // remove duplicates
+            for (int i = 0; i < Players.Count; i++)
+            {
+                if (Players[i].ClientId == clientId)
+                {
+                    error = LobbyErrorCode.None;
+                    return true;
+                }
+            }
+
+            if (!CanJoin(clientId, payload, out error))
                 return false;
-            
+
             Players.Add(new PlayerLobbyData
             {
                 ClientId = clientId,
-                UserId = userId,
-                IsReady = false
+                UserId = payload.userId,
+                IsReady = false,
+                PingMs = 0
             });
 
             return true;
         }
+
+        //  Backward-compatibility
+        public bool TryAddPlayer(ulong clientId, string userId, out LobbyErrorCode error)
+        {
+            return TryAddPlayer(
+                clientId,
+                new LobbyJoinPayload { userId = userId, code = "", password = "" },
+                out error
+            );
+        }
+
 
        [Rpc(SendTo.Server)]
         public void KickPlayerServerRpc(ulong targetClientId, RpcParams rpcParams = default)
@@ -380,12 +454,41 @@ namespace NetCodeTest.Lobby
         #endregion
 
         #region Start / Stop
+        public void ConfigureLobbyAsHost(string lobbyName, int maxPlayers, LobbyPrivacy privacy, string code, string password)
+        {
+            if (!IsServer) return; // after host start its server only
+
+            LobbyName.Value = lobbyName;
+            MaxPlayers.Value = maxPlayers;
+            Privacy.Value = privacy;
+
+            if (privacy == LobbyPrivacy.Private)
+            {
+                JoinCode.Value = string.IsNullOrWhiteSpace(code) ? GenerateCodes() : code.Trim();
+                PasswordHash.Value = string.IsNullOrWhiteSpace(password) ? "" : HashUtils.Sha256Hex(password.Trim());
+            }
+            else
+            {
+                JoinCode.Value = "";
+                PasswordHash.Value = "";
+            }
+        }
+
+        private static string GenerateCodes()
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            var sb = new System.Text.StringBuilder(6);
+            for (int i = 0; i < 6; i++)
+                sb.Append(chars[UnityEngine.Random.Range(0, chars.Length)]);
+            return sb.ToString();
+        }
 
         public void StartHost()
         {
             NetworkManager.Singleton.StartHost();
         }
 
+        
         public void StartClient(string userId)
         {
             NetworkManager.Singleton.NetworkConfig.ConnectionData =
@@ -394,12 +497,34 @@ namespace NetCodeTest.Lobby
             NetworkManager.Singleton.StartClient();
         }
 
+        public void StartClientToHost(string hostIp, ushort port, string userId, string code, string password)
+        {
+            var nm = NetworkManager.Singleton;
+
+            if (nm.NetworkConfig.NetworkTransport is UnityTransport utp)
+                utp.SetConnectionData(hostIp, port);
+
+            nm.NetworkConfig.ConnectionData = LobbyJoinPayload.Encode(userId, code, password);
+            nm.StartClient();
+        }
+
         #endregion
 
         #region Callbacks
 
         private void LobbyUI_OnHostButtonPress()
         {
+            _pendingLobbyName = _lobbyUI.GetLobbyName();
+            _pendingMaxPlayers = _lobbyUI.GetMaxPlayers();
+            _pendingPrivacy = _lobbyUI.GetPrivacy();
+            _pendingCode = _lobbyUI.GetJoinCode();
+            _pendingPassword = _lobbyUI.GetPassword();
+            
+            Debug.Log(
+                $"LobbyUI_OnHostButtonPress() | " +
+                $"name='{_pendingLobbyName}', max={_pendingMaxPlayers}, privacy={_pendingPrivacy}," +
+                $"_pendingCode={_pendingCode},_pendingPassword={_pendingPassword}"
+            );
             StartHost();
         }
         
