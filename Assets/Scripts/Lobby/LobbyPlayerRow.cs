@@ -1,3 +1,5 @@
+using NetCodeTest.Core.Contracts;
+using NetCodeTest.Core.DI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,6 +9,8 @@ namespace NetCodeTest.Lobby
     public class LobbyPlayerRow : MonoBehaviour
     {
         #region Fields
+        private ILobbyService _lobby;
+        
         [SerializeField] private TMP_Text _userIdText;
         [SerializeField] private Image _readyIndicator;
         [SerializeField] private Button _kickButton;
@@ -15,7 +19,12 @@ namespace NetCodeTest.Lobby
         private ulong _clientId;
         [SerializeField] private TMP_Text _pingText;
         #endregion  
-
+        
+        private void Awake()
+        {
+            _lobby = ServiceContainer.Resolve<ILobbyService>();
+        }
+        
         public void Bind(PlayerLobbyData data, bool isHost)
         {
             _clientId = data.ClientId;
@@ -37,7 +46,7 @@ namespace NetCodeTest.Lobby
 
         private void OnKick()
         {
-            LobbyManager.Instance.KickPlayerServerRpc(_clientId);
+            _lobby.Kick(_clientId);
         }
     }
 }
