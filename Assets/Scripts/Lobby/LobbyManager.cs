@@ -497,16 +497,66 @@ namespace NetCodeTest.Lobby
             NetworkManager.Singleton.StartClient();
         }
 
-        public void StartClientToHost(string hostIp, ushort port, string userId, string code, string password)
+        public void StartClientToHost(
+            string hostIp,
+            ushort port,
+            string userId,
+            string code,
+            string password)
         {
-            var nm = NetworkManager.Singleton;
+            var networkManager = NetworkManager.Singleton;
 
-            if (nm.NetworkConfig.NetworkTransport is UnityTransport utp)
+            // State guard (CRITICAL)
+            if (networkManager.IsListening)
+            {
+                Debug.LogWarning(
+                    "[Lobby][Client] Cannot start client: NetworkManager already running"
+                );
+                return;
+            }
+
+            // Basic validation
+            if (string.IsNullOrWhiteSpace(hostIp))
+            {
+                Debug.LogWarning("[Lobby][Client] Host IP is empty");
+                return;
+            }
+
+            if (port == 0)
+            {
+                Debug.LogWarning("[Lobby][Client] Invalid port");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                Debug.LogWarning("[Lobby][Client] UserId is empty");
+                return;
+            }
+
+            // Transport config
+            if (networkManager.NetworkConfig.NetworkTransport is UnityTransport utp)
+            {
                 utp.SetConnectionData(hostIp, port);
+            }
+            else
+            {
+                Debug.LogError("[Lobby][Client] UnityTransport not found");
+                return;
+            }
 
-            nm.NetworkConfig.ConnectionData = LobbyJoinPayload.Encode(userId, code, password);
-            nm.StartClient();
+            //  Payload
+            networkManager.NetworkConfig.ConnectionData =
+                LobbyJoinPayload.Encode(userId, code, password);
+
+            Debug.Log(
+                $"[Lobby][Client] StartClient → {hostIp}:{port} userId='{userId}'"
+            );
+
+            //  Start
+            networkManager.StartClient();
         }
+
 
         #endregion
 
