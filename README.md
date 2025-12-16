@@ -56,17 +56,7 @@ The server is the single source of truth.
 Clients predict movement locally to hide latency, but the server always decides the final position.
 
 High-Level Flow
-Client Input
-   ?
-Client Prediction (SimulatePrediction)
-   ?
-InputTick ? Server (Unreliable RPC)
-   ?
-Server Simulation (SimulateServer)
-   ?
-Authoritative StateTick
-   ?
-Client Reconciliation
+Client Input >> Client Prediction (SimulatePrediction) >> InputTick >> Server (Unreliable RPC) >> Server Simulation (SimulateServer) >> Authoritative StateTick >> Client Reconciliation
 
 2. An owner authoritative movement architecture with:
 NetworkTransform
