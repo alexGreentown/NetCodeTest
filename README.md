@@ -1,41 +1,48 @@
-# NetCodeTest
+# Unity Multiplayer Architecture Demo (Netcode for GameObjects)
 
-Multiplayer Lobby & Gameplay Demo (Unity 6 + NGO)
-Overview
+This repository contains a technical prototype demonstrating a clean and modular
+multiplayer architecture using **Unity Netcode for GameObjects (NGO)**.
 
-A small multiplayer Unity project demonstrating a clean, SOLID-based architecture for lobby management, scene switching, and synchronized gameplay using Netcode for GameObjects (NGO).
+The project is intentionally focused on **architecture and code structure** rather
+than game content or visuals. It is meant to showcase how multiplayer gameplay
+systems can be designed in a scalable, maintainable way for small-to-mid sized games.
 
-The project focuses on correctness, extensibility, and production-style structure rather than visuals.
+---
 
-Tech Stack
+## Goals of This Project
 
-Unity: 6.0+
+- Demonstrate a **server-authoritative multiplayer model**
+- Separate **gameplay logic** from **networking concerns**
+- Show clean usage of `NetworkBehaviour`, RPCs, and ownership checks
 
-Networking: Netcode for GameObjects (NGO)
+---
 
-Input: New Input System
+## Architecture Overview
 
-Async: UniTask
+**Key principles used:**
+- Server-authoritative gameplay decisions
+- Ownership-aware input handling
+- Explicit separation of responsibilities between components
+- Minimal coupling between networking and gameplay logic
 
-Tweening: DOTween
+The code avoids monolithic behaviours and instead favors small, focused components
+that are easier to reason about and extend.
 
-Architecture: SOLID + Dependency Injection (custom lightweight DI)
+---
 
-## Controls
-C = change player color
-F = create object
-E = grab object
-T = throw object
-V = delete object
+## What This Project Demonstrates
 
-## Dependency Injection
+- Correct usage of Unity Netcode for GameObjects
+- Client/server responsibility separation
+- Safe RPC patterns
+- Modular gameplay code suitable for multiplayer environments
+- Readable and maintainable C# structure
 
-Project uses a lightweight custom DI container.
+This is not a complete game, but a technical sandbox intended to demonstrate
+multiplayer architecture patterns.
 
-- Composition Root initializes services
-- MonoBehaviours depend on interfaces, not implementations
+---
 
-This keeps the architecture modular, testable and easy to extend.
 
 
 ## Movement Architecture
@@ -63,3 +70,29 @@ NetworkTransform
 Component Based DI to switch modes. 
 
 To switch modes must change Authority Mode in NetworkTransform component on PlayerPrefab
+
+---
+
+## Tech Stack
+
+- Unity (Netcode for GameObjects)
+- C#
+- Unity Transport
+- New Input System
+- UniTask
+- Git
+
+---
+
+## Notes
+
+This project was built as an architectural exercise and learning prototype.
+It is intentionally lightweight and focused on code quality rather than features.
+
+## Controls
+C = change player color
+F = create object
+E = grab object
+T = throw object
+V = delete object
+
